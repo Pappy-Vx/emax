@@ -30,6 +30,8 @@ export default function Contact() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', service: '', when: '', message: '' });
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const update = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -45,13 +47,27 @@ export default function Contact() {
     return e;
   };
 
-  const onSubmit = (ev) => {
+  const onSubmit = async (ev) => {
     ev.preventDefault();
     const e = validate();
     setErrors(e);
-    if (Object.keys(e).length === 0) {
+    if (Object.keys(e).length > 0) return;
+
+    setLoading(true);
+    setServerError('');
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error();
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      setServerError('Something went wrong. Please call us directly or try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -214,13 +230,16 @@ export default function Contact() {
                     </Field>
                   </div>
 
+                  {serverError && (
+                    <p className="mt-5 text-sm text-red-600 font-medium">{serverError}</p>
+                  )}
                   <div className="mt-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <p className="text-xs text-navy/55 max-w-sm leading-relaxed">
                       By sending, you agree we may reply by call or text. We never share your info.
                     </p>
-                    <GoldButton as="button" size="lg" className="self-start sm:self-auto">
-                      Send Message
-                      <Icons.Arrow size={16} stroke={2.2} />
+                    <GoldButton as="button" size="lg" className="self-start sm:self-auto" disabled={loading}>
+                      {loading ? 'Sending…' : 'Send Message'}
+                      {!loading && <Icons.Arrow size={16} stroke={2.2} />}
                     </GoldButton>
                   </div>
                 </form>

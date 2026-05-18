@@ -122,20 +122,30 @@ export default function Landing() {
             <p className="rise rise-3 mt-7 text-lg sm:text-xl text-white/75 max-w-xl leading-relaxed">
               eMax handles your everyday errands across Columbus, so you can focus on the people, work, and rest that matter most.
             </p>
-            <div className="rise rise-4 mt-9 flex flex-wrap items-center gap-3">
-              <GoldButton href={TEL} size="lg">
-                <Icons.Phone size={18} stroke={2.2} />
-                Call or Text {PHONE}
-              </GoldButton>
-              <OutlineButton
-                href="#services"
-                tone="light"
-                size="lg"
-                onClick={(e) => { e.preventDefault(); scrollTo('services'); }}
-              >
-                See Our Services
-                <Icons.Arrow size={16} stroke={2.2} />
-              </OutlineButton>
+            <div className="rise rise-4 mt-9 space-y-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <GoldButton href={TEL} size="lg">
+                  <Icons.Phone size={18} stroke={2.2} />
+                  Book Now
+                </GoldButton>
+                <OutlineButton
+                  href="#services"
+                  tone="light"
+                  size="lg"
+                  onClick={(e) => { e.preventDefault(); scrollTo('services'); }}
+                >
+                  See Our Services
+                  <Icons.Arrow size={16} stroke={2.2} />
+                </OutlineButton>
+              </div>
+              <a href={TEL} className="inline-flex items-center gap-3 group">
+                <span className="grid place-items-center w-12 h-12 rounded-full bg-gold/20 border border-gold/40 text-gold shrink-0 group-hover:bg-gold group-hover:text-navy transition">
+                  <Icons.Phone size={20} stroke={2.2} />
+                </span>
+                <span className="font-display font-black text-[34px] sm:text-[48px] text-white tracking-tight leading-none group-hover:text-gold transition">
+                  {PHONE}
+                </span>
+              </a>
             </div>
 
             <div className="rise rise-5 mt-12 flex flex-wrap items-center gap-x-7 gap-y-3 text-white/65 text-sm">

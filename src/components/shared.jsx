@@ -33,29 +33,33 @@ export const LogoMark = ({ size = 44, tone = 'light' }) => {
   if (tone === 'dark') {
     return (
       <div className="flex items-center gap-3">
-        <div className="relative grid place-items-center w-11 h-11 rounded-xl bg-gold shadow-gold">
+        <div className="relative grid place-items-center w-12 h-12 rounded-xl bg-gold shadow-gold">
           <span className="font-display font-black text-navy text-2xl leading-none">e</span>
           <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white border-2 border-navy" />
         </div>
         <div className="leading-tight">
-          <div className="font-display font-black text-white text-xl tracking-tight">eMax</div>
+          <div className="font-display font-black text-white text-2xl tracking-tight">
+            e<sup className="text-sm font-black" style={{ verticalAlign: 'super', fontSize: '0.58em' }}>max</sup>
+          </div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-gold/90 font-semibold">Errands &amp; More</div>
         </div>
       </div>
     );
   }
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       <Image
         src="/emax-logo.jpeg"
         alt="eMax Errands & More logo"
         width={size}
         height={size}
-        className="rounded-md object-cover"
+        className="rounded-lg object-cover"
       />
       <div className="leading-tight hidden sm:block">
-        <div className="font-display font-black text-navy text-lg tracking-tight">eMax</div>
-        <div className="text-[10px] uppercase tracking-[0.18em] text-navy/70 font-semibold">Errands &amp; More</div>
+        <div className="font-display font-black text-navy text-[1.6rem] tracking-tight">
+          e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup>
+        </div>
+        <div className="text-[11px] uppercase tracking-[0.18em] text-navy/70 font-semibold">Errands &amp; More</div>
       </div>
     </div>
   );

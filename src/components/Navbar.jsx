@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogoMark, GoldButton, TEL } from './shared';
+import { LogoMark, GoldButton, TEL, PHONE } from './shared';
 import Icons from './icons';
 
 export default function Navbar() {
@@ -58,9 +58,9 @@ export default function Navbar() {
           : 'bg-white/60 backdrop-blur-sm border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[92px] flex items-center justify-between">
         <a href="/" onClick={handleHome} className="flex items-center">
-          <LogoMark size={44} tone="light" />
+          <LogoMark size={64} tone="light" />
         </a>
 
         <nav className="hidden md:flex items-center gap-1">
@@ -84,6 +84,13 @@ export default function Navbar() {
               </a>
             )
           )}
+          <a
+            href={TEL}
+            className="ml-2 hidden lg:flex items-center gap-1.5 px-3 py-2 font-display font-bold text-base text-navy tracking-tight hover:text-gold transition"
+          >
+            <Icons.Phone size={15} stroke={2.5} className="text-gold shrink-0" />
+            {PHONE}
+          </a>
           <GoldButton size="sm" href={TEL} className="ml-2">
             <Icons.Phone size={16} stroke={2.2} />
             Book Now
