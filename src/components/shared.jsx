@@ -33,15 +33,14 @@ export const LogoMark = ({ size = 44, tone = 'light' }) => {
   if (tone === 'dark') {
     return (
       <div className="flex items-center gap-3">
-        <div className="relative grid place-items-center w-12 h-12 rounded-xl bg-gold shadow-gold">
+        {/* <div className="relative grid place-items-center w-12 h-12 rounded-xl bg-gold shadow-gold">
           <span className="font-display font-black text-navy text-2xl leading-none">e</span>
           <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white border-2 border-navy" />
-        </div>
+        </div> */}
         <div className="leading-tight">
-          <div className="font-display font-black text-white text-2xl tracking-tight">
-            e<sup className="text-sm font-black" style={{ verticalAlign: 'super', fontSize: '0.58em' }}>max</sup>
+          <div className="font-display font-black text-white text-3xl tracking-tight">
+            e<sup className="text-sm font-black" style={{ verticalAlign: 'super', fontSize: '0.58em' }}>max</sup> <span className="text-[10px] uppercase tracking-[0.18em] text-gold/90 font-semibold">Errands &amp; More</span>
           </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-gold/90 font-semibold">Errands &amp; More</div>
         </div>
       </div>
     );
@@ -54,12 +53,12 @@ export const LogoMark = ({ size = 44, tone = 'light' }) => {
         width={size}
         height={size}
         className="rounded-lg object-cover"
+        priority
       />
       <div className="leading-tight hidden sm:block">
         <div className="font-display font-black text-navy text-[1.6rem] tracking-tight">
-          e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup>
+          e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> <span className="text-[14px] uppercase tracking-[0.18em] text-navy/70 font-semibold">Errands &amp; More</span>
         </div>
-        <div className="text-[11px] uppercase tracking-[0.18em] text-navy/70 font-semibold">Errands &amp; More</div>
       </div>
     </div>
   );

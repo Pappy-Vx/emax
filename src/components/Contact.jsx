@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import { useReveal, GoldButton, OutlineButton, PHONE, TEL, SMS } from './shared';
 import Icons from './icons';
 
@@ -144,6 +145,7 @@ export default function Contact() {
                   <div>
                     <div className="text-xs uppercase tracking-wider text-navy/55 font-semibold">Service Area</div>
                     <div className="font-semibold text-navy">Columbus, IN &amp; surrounding areas</div>
+                    <div className="text-xs text-navy/50 mt-0.5">254 Chapman Rd, Newark, DE 19702</div>
                   </div>
                 </div>
               </div>
@@ -245,6 +247,74 @@ export default function Contact() {
                 </form>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ABOUT THE OWNER */}
+      <section className="bg-white py-20 sm:py-28 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+            {/* Photo */}
+            <div className="reveal relative flex justify-center lg:justify-start">
+              <div className="relative w-full max-w-sm lg:max-w-none rounded-3xl overflow-hidden aspect-[4/5] shadow-card">
+                <Image
+                  src="/elizabeth.jpeg"
+                  alt="Elizabeth Jikiemi, founder of eMax Errands & More"
+                  fill
+                  className="object-cover object-top"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/50 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold text-navy text-xs font-bold uppercase tracking-wider shadow-gold">
+                    <Icons.Check size={12} stroke={3} />
+                    Founder &amp; Owner
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-8 -left-8 w-40 h-40 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
+              <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-navy/5 blur-3xl pointer-events-none" />
+            </div>
+
+            {/* Bio */}
+            <div className="reveal delay-1">
+              <div className="text-xs uppercase tracking-[0.22em] text-navy/55 font-semibold mb-3">The Person Behind eMax</div>
+              <h2 className="font-display font-black text-4xl sm:text-[52px] text-navy tracking-tight leading-[1.05]">
+                Meet Elizabeth<br /><span className="text-gold">Jikiemi.</span>
+              </h2>
+
+              <div className="mt-7 space-y-4 text-navy/70 leading-relaxed text-[17px]">
+                <p>
+                  Elizabeth didn&rsquo;t set out to build a business, she set out to be useful. A natural helper with a genuine heart for her community, she noticed that the people around her were always running short on one thing: time.
+                </p>
+                <p>
+                  So she did what she does best. She showed up.
+                </p>
+                <p>
+                  eMax Errands &amp; More was born from that instinct a personal, hands-on service that treats every errand like it matters. Because to Elizabeth, it does. She handles each task the way she&rsquo;d want someone to handle it for her own family: carefully, promptly, and with genuine care.
+                </p>
+              </div>
+
+              <div className="mt-8 flex items-start gap-4">
+                <div className="w-1 self-stretch bg-gold rounded-full shrink-0" />
+                <p className="font-display font-bold text-xl text-navy leading-snug italic">
+                  &ldquo;If I can make your day a little easier, that&rsquo;s a great day for me.&rdquo;
+                </p>
+              </div>
+
+              <div className="mt-9 flex flex-wrap items-center gap-3">
+                <GoldButton href={TEL} size="lg">
+                  <Icons.Phone size={18} stroke={2.2} />
+                  Reach Out to Elizabeth
+                </GoldButton>
+                <OutlineButton href={SMS} tone="navy" size="lg">
+                  <Icons.Msg size={18} stroke={2.2} />
+                  Send a Text
+                </OutlineButton>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>

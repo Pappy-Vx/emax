@@ -47,7 +47,10 @@ export default function Footer() {
           </a>
           <div className="mt-5 flex items-start gap-3 text-white/70 text-[14px]">
             <Icons.Pin size={18} stroke={2} className="text-gold mt-0.5 shrink-0" />
-            <span>Serving Columbus, Indiana &amp; surrounding areas</span>
+            <div>
+              <div>Serving Columbus, Indiana &amp; surrounding areas</div>
+              <div className="mt-0.5 text-white/50">254 Chapman Rd, Newark, DE 19702</div>
+            </div>
           </div>
           <div className="mt-3 flex items-start gap-3 text-white/70 text-[14px]">
             <Icons.Clock size={18} stroke={2} className="text-gold mt-0.5 shrink-0" />
