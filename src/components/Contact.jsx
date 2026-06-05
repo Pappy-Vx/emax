@@ -286,13 +286,13 @@ export default function Contact() {
 
               <div className="mt-7 space-y-4 text-navy/70 leading-relaxed text-[17px]">
                 <p>
-                  Elizabeth didn&rsquo;t set out to build a business, she set out to be useful. A natural helper with a genuine heart for her community, she noticed that the people around her were always running short on one thing: time.
+                  Elizabeth didn&rsquo;t set out to build a business &mdash; she set out to be useful. One afternoon in Columbus, Indiana, she watched a neighbor juggle store packages, a parcel, and a toddler all at once, and it hit her: everyone could use a little more time. Inspired by the Midwest warmth that makes Columbus so special, she decided to do something about it.
                 </p>
                 <p>
-                  So she did what she does best. She showed up.
+                  From that spark, eMax Errands &amp; More was born. What started as Elizabeth personally handling errands has grown into a small, trusted team &mdash; each member sharing her values of reliability, care, and genuine dedication to the community.
                 </p>
                 <p>
-                  eMax Errands &amp; More was born from that instinct a personal, hands-on service that treats every errand like it matters. Because to Elizabeth, it does. She handles each task the way she&rsquo;d want someone to handle it for her own family: carefully, promptly, and with genuine care.
+                  Together, they help busy families, professionals, seniors, caregivers, and small business owners reclaim their day. From pharmacy runs and store returns to parcel pickups, document drop-offs, and custom errands, the eMax team believes every task matters.
                 </p>
               </div>
 
