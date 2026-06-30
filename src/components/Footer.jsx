@@ -45,23 +45,33 @@ export default function Footer() {
               <div className="text-lg font-semibold tel-no-wrap">{PHONE}</div>
             </div>
           </a>
+          <a href="mailto:hello@emaxerrands.com" className="group mt-5 flex items-center gap-3 text-white hover:text-gold transition">
+            <span className="grid place-items-center w-10 h-10 rounded-full bg-white/8 border border-white/10 text-gold group-hover:bg-gold group-hover:text-navy group-hover:border-gold transition">
+              <Icons.Mail size={18} stroke={2} />
+            </span>
+            <div>
+              <div className="text-xs text-white/60 uppercase tracking-wider">Email</div>
+              <div className="text-[15px] font-medium">hello@emaxerrands.com</div>
+            </div>
+          </a>
           <div className="mt-5 flex items-start gap-3 text-white/70 text-[14px]">
             <Icons.Pin size={18} stroke={2} className="text-gold mt-0.5 shrink-0" />
             <div>
               <div>Serving Columbus, Indiana &amp; surrounding areas</div>
-              <div className="mt-0.5 text-white/50">254 Chapman Rd, Newark, DE 19702</div>
+              {/* <div className="mt-0.5 text-white/50">254 Chapman Rd, Newark, DE 19702</div> */}
             </div>
           </div>
           <div className="mt-3 flex items-start gap-3 text-white/70 text-[14px]">
             <Icons.Clock size={18} stroke={2} className="text-gold mt-0.5 shrink-0" />
-            <span>Mon–Sat, 8am–7pm</span>
+            <span>Mon–Fri, 8am–5pm</span>
+            <span>Sat, 10am–2pm</span>
           </div>
         </div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/50">
         <div>© 2025 eMax Errands &amp; More. All rights reserved.</div>
-        <div>Built with care</div>
+        <div>Built with Kola</div>
       </div>
     </footer>
   );

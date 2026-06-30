@@ -127,6 +127,17 @@ export default function Contact() {
                   </div>
                 </a>
 
+                <a href="mailto:hello@emaxerrands.com" className="group flex items-center gap-4 p-4 rounded-2xl bg-cream border border-navy/8 hover:border-gold hover:bg-white transition">
+                  <span className="grid place-items-center w-12 h-12 rounded-2xl bg-navy/8 text-navy group-hover:bg-gold transition">
+                    <Icons.Mail size={22} stroke={2} />
+                  </span>
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-navy/55 font-semibold">Email</div>
+                    <div className="font-semibold text-navy text-[15px]">hello@emaxerrands.com</div>
+                    <div className="text-xs text-navy/55 mt-0.5">We reply within the hour during business hours.</div>
+                  </div>
+                </a>
+
                 <div className="flex items-center gap-4 p-4 rounded-2xl">
                   <span className="grid place-items-center w-12 h-12 rounded-2xl bg-navy/5 text-navy">
                     <Icons.Clock size={22} stroke={2} />
