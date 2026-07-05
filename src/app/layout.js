@@ -38,7 +38,7 @@ export const metadata = {
   },
   manifest: '/site.webmanifest',
   verification: {
-    google: '<meta name="google-site-verification" content="FVqqyg583emRFIODFe8o-JNcTNQfAynzzLnnpvOke-M" />', // Replace after getting code from Search Console
+    google: 'FVqqyg583emRFIODFe8o-JNcTNQfAynzzLnnpvOke-M',
   },
   openGraph: {
     title: 'eMax Errands & More — Making life easier in Columbus, Indiana',
