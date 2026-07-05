@@ -71,7 +71,7 @@ export default function Footer() {
 
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/50">
         <div>© 2025 eMax Errands &amp; More. All rights reserved.</div>
-        <div>Built with Kola</div>
+        <div>Built by <a href="https://kolapo.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white/80 transition">Kola</a></div>
       </div>
     </footer>
   );

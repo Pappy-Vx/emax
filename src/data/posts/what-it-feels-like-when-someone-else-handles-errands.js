@@ -222,7 +222,7 @@ const post = {
 
 <p>Then this is probably not new to you. It is just something you have not named yet.</p>
 
-<p>And if you ever want to simplify that layer of your week, you can <a href="https://emax-two.vercel.app" target="_blank" rel="noopener noreferrer">explore here</a>.</p>
+<p>And if you ever want to simplify that layer of your week, you can <a href="tel:+18125659585">call or text us at (812) 565-9585</a>.</p>
   `.trim(),
 };
 

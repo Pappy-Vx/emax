@@ -195,7 +195,7 @@ const post = {
 
 <p>Just tell us what the errand is and we will handle the rest.</p>
 
-<p>You can <a href="https://emax-two.vercel.app" target="_blank" rel="noopener noreferrer">request an errand directly here</a>.</p>
+<p>You can <a href="tel:+18125659585">call or text us directly at (812) 565-9585</a> to request an errand.</p>
   `.trim(),
 };
 

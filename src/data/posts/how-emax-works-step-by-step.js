@@ -92,7 +92,7 @@ const post = {
   <img src="/howemaxworks.jpg" alt="How eMax Errands works — the complete step-by-step process from text to completion" class="blog-media-img-full" loading="lazy" />
 </figure>
 
-<p>Ready to try it? <a href="https://emax-two.vercel.app" target="_blank" rel="noopener noreferrer">Request an errand here</a> or text us directly at <a href="tel:+18125659585">(812) 565-9585</a>.</p>
+<p>Ready to try it? <a href="tel:+18125659585">Call or text us directly at (812) 565-9585</a> — no app, no form, just a message.</p>
   `.trim(),
 };
 

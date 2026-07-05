@@ -221,7 +221,7 @@ const post = {
   <figcaption>Your evenings, reclaimed.</figcaption>
 </figure>
 
-<p>You can explore or <a href="https://emax-two.vercel.app" target="_blank" rel="noopener noreferrer">book here</a>.</p>
+<p>You can explore or <a href="tel:+18125659585">call us directly at (812) 565-9585</a>.</p>
   `.trim(),
 };
 

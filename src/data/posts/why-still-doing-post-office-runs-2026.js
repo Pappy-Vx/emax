@@ -150,7 +150,7 @@ const post = {
 
 <p>It is whether it is worth stopping your day every time you do.</p>
 
-<p><a href="https://emax-two.vercel.app" target="_blank" rel="noopener noreferrer">Book here</a> to change that narrative.</p>
+<p><a href="tel:+18125659585">Call or text (812) 565-9585</a> to change that narrative.</p>
   `.trim(),
 };
 
