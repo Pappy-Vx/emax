@@ -1,7 +1,10 @@
 import { Outfit, DM_Sans } from 'next/font/google';
+import Script from 'next/script';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import './globals.css';
+
+const GA_ID = 'G-2FSLJD8ZGK'; // Replace with your GA4 Measurement ID
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -34,6 +37,9 @@ export const metadata = {
     ],
   },
   manifest: '/site.webmanifest',
+  verification: {
+    google: '<meta name="google-site-verification" content="FVqqyg583emRFIODFe8o-JNcTNQfAynzzLnnpvOke-M" />', // Replace after getting code from Search Console
+  },
   openGraph: {
     title: 'eMax Errands & More — Making life easier in Columbus, Indiana',
     description: 'Reliable local errands. Call or text (812) 565-9585 — no app required.',
@@ -48,6 +54,18 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <Footer />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
       </body>
     </html>
   );
