@@ -45,7 +45,7 @@ export default function Navbar() {
 
   const links = [
     { label: 'Home',     onClick: handleHome },
-    { label: 'Services', onClick: (e) => handleSection(e, 'services') },
+    { label: 'Services', href: '/services' },
     { label: 'Why eMax', onClick: (e) => handleSection(e, 'why') },
     { label: 'Blog',     href: '/blog' },
     { label: 'Contact',  href: '/contact' },

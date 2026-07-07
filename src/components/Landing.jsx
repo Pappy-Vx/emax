@@ -229,7 +229,7 @@ export default function Landing() {
               </h2>
             </div>
             <p className="reveal delay-1 md:max-w-sm text-navy/70 leading-relaxed text-lg">
-              Nine ways we save you time across Columbus, and one more for whatever isn&rsquo;t on the list.
+              Some of the many ways we save you time across Columbus, and one more for whatever isn&rsquo;t on the list.
             </p>
           </div>
 

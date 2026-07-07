@@ -156,7 +156,6 @@ export default function Contact() {
                   <div>
                     <div className="text-xs uppercase tracking-wider text-navy/55 font-semibold">Service Area</div>
                     <div className="font-semibold text-navy">Columbus, IN &amp; surrounding areas</div>
-                    <div className="text-xs text-navy/50 mt-0.5">254 Chapman Rd, Newark, DE 19702</div>
                   </div>
                 </div>
               </div>
@@ -214,7 +213,7 @@ export default function Contact() {
 
                   <div className="mt-7 grid sm:grid-cols-2 gap-4">
                     <Field label="Full Name *" error={errors.name}>
-                      <input type="text"  className="field" placeholder="Jane Doe"            value={form.name}    onChange={update('name')}    />
+                      <input type="text"  className="field" placeholder="Jane Smith"            value={form.name}    onChange={update('name')}    />
                     </Field>
                     <Field label="Phone Number *" error={errors.phone}>
                       <input type="tel"   className="field" placeholder="(812) 555-0000"      value={form.phone}   onChange={update('phone')}   />
@@ -271,7 +270,7 @@ export default function Contact() {
             <div className="reveal relative flex justify-center lg:justify-start">
               <div className="relative w-full max-w-sm lg:max-w-none rounded-3xl overflow-hidden aspect-[4/5] shadow-card">
                 <Image
-                  src="/elizabeth.jpeg"
+                  src="/Elizabeth.png"
                   alt="Elizabeth Jikiemi, founder of eMax Errands & More"
                   fill
                   className="object-cover object-top"

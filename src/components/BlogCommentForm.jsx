@@ -58,7 +58,7 @@ export default function BlogCommentForm({ postTitle, postSlug }) {
             type="text"
             value={form.name}
             onChange={set('name')}
-            placeholder="Jane Doe"
+            placeholder="Jane Smith"
             required
             className="field"
           />
