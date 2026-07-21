@@ -21,6 +21,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata = {
+  metadataBase: new URL('https://emaxerrands.com'),
   title: 'eMax Errands & More — Local Errand Service in Columbus, Indiana',
   description:
     'eMax Errands & More is a local errand service in Columbus, Indiana. Pharmacy pickup, store returns, document delivery, post office runs, and more. Call or text (812) 565-9585 — no app required.',
