@@ -26,21 +26,21 @@ const personas = [
 
 const testimonials = [
   {
-    quote: 'eMax has been a lifesaver. Between three kids and work, I never have time for the pharmacy. They\'re reliable, quick, and feel like family.',
-    name: 'Sarah M.',
-    where: 'Tipton Lakes, Columbus',
+    quote: 'Elizabeth with EMax was amazing to work with! I needed a package picked up and dropped off at a local UPS Store and she got right on it. Very friendly, trustworthy, and reliable. Would absolutely work with them again! Thank you!!',
+    name: 'Brad D.',
+    where: 'Seattle, WA',
     stars: 5,
   },
   {
-    quote: 'I called once for a forgotten laptop charger before a big meeting. They had it to my office in 25 minutes. I use them every week now.',
-    name: 'David R.',
-    where: 'Downtown Columbus',
+    quote: 'Outstanding service! I couldn\'t be happier with my experience. This company is incredibly efficient, reliable, and delivers on time. The communication throughout was excellent — she kept me informed every step of the way. I highly recommend them and will definitely continue using their services in the future!',
+    name: 'Adeola A.',
+    where: 'Columbus, IN',
     stars: 5,
   },
   {
-    quote: 'They pick up my mom\'s prescriptions and run her library books back every week. Knowing someone friendly is checking in means the world.',
-    name: 'Linda K.',
-    where: 'Fair Oaks, Columbus',
+    quote: 'Excellent service by Elizabeth from eMax errands and more. Dealing with eMax was smooth and fast. I will definitely do it again.',
+    name: 'Tee A.',
+    where: 'Columbus, IN',
     stars: 5,
   },
 ];
