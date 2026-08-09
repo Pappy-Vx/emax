@@ -120,7 +120,7 @@ export default function Landing() {
               <span className="text-gold">More living.</span>
             </h1>
             <p className="rise rise-3 mt-7 text-lg sm:text-xl text-white/75 max-w-xl leading-relaxed">
-              eMax handles your everyday errands across Columbus, so you can focus on the people, work, and rest that matter most.
+              e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> handles your everyday errands across Columbus, so you can focus on the people, work, and rest that matter most.
             </p>
             <div className="rise rise-4 mt-9 space-y-6">
               <div className="flex flex-wrap items-center gap-3">
@@ -273,7 +273,7 @@ export default function Landing() {
               Built for busy people <span className="text-gold">like you.</span>
             </h2>
             <p className="mt-5 text-navy/65 text-lg leading-relaxed">
-              Whatever the season of life, eMax fits into it. Here&rsquo;s who calls us most.
+              Whatever the season of life, e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> fits into it. Here&rsquo;s who calls us most.
             </p>
           </div>
 
@@ -302,7 +302,7 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-5 sm:px-8">
           <div className="grid md:grid-cols-12 gap-10 items-end mb-16">
             <div className="md:col-span-7 reveal">
-              <div className="text-xs uppercase tracking-[0.22em] text-gold font-semibold mb-4">Why eMax</div>
+              <div className="text-xs uppercase tracking-[0.22em] text-gold font-semibold mb-4">Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></div>
               <h2 className="font-display font-black text-[40px] sm:text-[60px] leading-[1.05]">
                 Not an app.<br />
                 A <span className="text-gold">real local</span> service.
@@ -342,7 +342,7 @@ export default function Landing() {
           <div className="reveal text-center max-w-3xl mx-auto">
             <div className="text-xs uppercase tracking-[0.22em] text-navy/55 font-semibold mb-4">Trusted Locally</div>
             <h2 className="font-display font-black text-[40px] sm:text-[56px] leading-[1.05] text-navy">
-              Why Columbus chooses <span className="text-gold">eMax.</span>
+              Why Columbus chooses <span className="text-gold">e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup>.</span>
             </h2>
           </div>
 

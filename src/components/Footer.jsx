@@ -29,7 +29,7 @@ export default function Footer() {
           <ul className="space-y-3 text-[15px]">
             <li><Link href="/" className="hover:text-gold transition">Home</Link></li>
             <li><Link href="/#services" className="hover:text-gold transition">Services</Link></li>
-            <li><Link href="/#why" className="hover:text-gold transition">Why eMax</Link></li>
+            <li><Link href="/#why" className="hover:text-gold transition">Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></Link></li>
             <li><Link href="/contact" className="hover:text-gold transition">Contact</Link></li>
           </ul>
         </div>
@@ -70,8 +70,8 @@ export default function Footer() {
       </div>
 
       <div className="relative max-w-7xl mx-auto px-5 sm:px-8 mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/50">
-        <div>© 2025 eMax Errands &amp; More. All rights reserved.</div>
-        <div>Built by <a href="https://kolapo.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white/80 transition">Kola</a></div>
+        <div>© 2026 e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> Errands &amp; More. All rights reserved.</div>
+        <div>Built by <a href="https://kolapo.vercel.app" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white/80 transition font-16" >Kola</a></div>
       </div>
     </footer>
   );

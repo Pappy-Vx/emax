@@ -289,7 +289,7 @@ export default function Contact() {
 
             {/* Bio */}
             <div className="reveal delay-1">
-              <div className="text-xs uppercase tracking-[0.22em] text-navy/55 font-semibold mb-3">The Person Behind eMax</div>
+              <div className="text-xs uppercase tracking-[0.22em] text-navy/55 font-semibold mb-3">The Person Behind e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></div>
               <h2 className="font-display font-black text-4xl sm:text-[52px] text-navy tracking-tight leading-[1.05]">
                 Meet Elizabeth<br /><span className="text-gold">Jikiemi.</span>
               </h2>
@@ -299,10 +299,10 @@ export default function Contact() {
                   Elizabeth didn&rsquo;t set out to build a business &mdash; she set out to be useful. One afternoon in Columbus, Indiana, she watched a neighbor juggle store packages, a parcel, and a toddler all at once, and it hit her: everyone could use a little more time. Inspired by the Midwest warmth that makes Columbus so special, she decided to do something about it.
                 </p>
                 <p>
-                  From that spark, eMax Errands &amp; More was born. What started as Elizabeth personally handling errands has grown into a small, trusted team &mdash; each member sharing her values of reliability, care, and genuine dedication to the community.
+                  From that spark, e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> Errands &amp; More was born. What started as Elizabeth personally handling errands has grown into a small, trusted team &mdash; each member sharing her values of reliability, care, and genuine dedication to the community.
                 </p>
                 <p>
-                  Together, they help busy families, professionals, seniors, caregivers, and small business owners reclaim their day. From pharmacy runs and store returns to parcel pickups, document drop-offs, and custom errands, the eMax team believes every task matters.
+                  Together, they help busy families, professionals, seniors, caregivers, and small business owners reclaim their day. From pharmacy runs and store returns to parcel pickups, document drop-offs, and custom errands, the e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup> team believes every task matters.
                 </p>
               </div>
 

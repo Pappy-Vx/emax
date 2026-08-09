@@ -20,9 +20,16 @@ import post17 from './posts/same-day-errand-help-columbus-indiana';
 import post18 from './posts/business-errand-services-columbus-indiana';
 import post19 from './posts/why-we-started-emax-columbus-indiana';
 import post20 from './posts/from-first-text-to-finished-errand-how-emax-works';
+import post21 from './posts/depleted-dad-syndrome-columbus-indiana';
+import post22 from './posts/what-do-new-dads-struggle-with-columbus-indiana';
+import post23 from './posts/how-do-dads-feel-when-baby-is-born-columbus-indiana';
+import post24 from './posts/hardest-weeks-for-new-parents-columbus-indiana';
+import post25 from './posts/what-is-the-3-3-3-rule-for-newborns-columbus-indiana';
+import post26 from './posts/which-week-is-hardest-with-a-newborn-columbus-indiana';
+import post27 from './posts/what-are-the-5-ps-of-a-father-columbus-indiana';
 
 // Add new posts here — newest last keeps the array in chronological order
-export const BLOG_POSTS = [post1, post2, post3, post4, post5, post6, post7, post8, post9, post10, post11, post12, post13, post14, post15, post16, post17, post18, post19, post20];
+export const BLOG_POSTS = [post1, post2, post3, post4, post5, post6, post7, post8, post9, post10, post11, post12, post13, post14, post15, post16, post17, post18, post19, post20, post21, post22, post23, post24, post25, post26, post27];
 
 export function getBlogPost(slug) {
   return BLOG_POSTS.find((p) => p.slug === slug) ?? null;

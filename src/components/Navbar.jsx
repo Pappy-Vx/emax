@@ -44,11 +44,11 @@ export default function Navbar() {
   };
 
   const links = [
-    { label: 'Home',     onClick: handleHome },
-    { label: 'Services', href: '/services' },
-    { label: 'Why eMax', onClick: (e) => handleSection(e, 'why') },
-    { label: 'Blog',     href: '/blog' },
-    { label: 'Contact',  href: '/contact' },
+    { id: 'home',     label: 'Home',     onClick: handleHome },
+    { id: 'services', label: 'Services', href: '/services' },
+    { id: 'why',      label: <>Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></>, onClick: (e) => handleSection(e, 'why') },
+    { id: 'blog',     label: 'Blog',     href: '/blog' },
+    { id: 'contact',  label: 'Contact',  href: '/contact' },
   ];
 
   return (
@@ -68,7 +68,7 @@ export default function Navbar() {
           {links.map((l) =>
             l.href ? (
               <Link
-                key={l.label}
+                key={l.id}
                 href={l.href}
                 className="px-4 py-2 text-[15px] font-medium text-navy/80 hover:text-navy rounded-full hover:bg-navy/5 transition"
               >
@@ -76,7 +76,7 @@ export default function Navbar() {
               </Link>
             ) : (
               <a
-                key={l.label}
+                key={l.id}
                 href="#"
                 onClick={l.onClick}
                 className="px-4 py-2 text-[15px] font-medium text-navy/80 hover:text-navy rounded-full hover:bg-navy/5 transition"
@@ -117,7 +117,7 @@ export default function Navbar() {
           {links.map((l) =>
             l.href ? (
               <Link
-                key={l.label}
+                key={l.id}
                 href={l.href}
                 onClick={() => setOpen(false)}
                 className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5"
@@ -126,7 +126,7 @@ export default function Navbar() {
               </Link>
             ) : (
               <a
-                key={l.label}
+                key={l.id}
                 href="#"
                 onClick={l.onClick}
                 className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5"
