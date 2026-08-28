@@ -2,6 +2,7 @@ import { Outfit, DM_Sans } from 'next/font/google';
 import Script from 'next/script';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FloatingWhatsapp from '@/components/FloatingWhatsapp';
 import './globals.css';
 
 const GA_ID = 'G-2FSLJD8ZGK'; // Replace with your GA4 Measurement ID
@@ -55,6 +56,7 @@ export default function RootLayout({ children }) {
         <Navbar />
         {children}
         <Footer />
+        <FloatingWhatsapp />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"

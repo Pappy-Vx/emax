@@ -5,6 +5,10 @@ import Image from 'next/image';
 export const PHONE = '(812) 565-9585';
 export const TEL = 'tel:+18125659585';
 export const SMS = 'sms:+18125659585';
+export const WHATSAPP_NUMBER = '18125659585';
+export function whatsappLink(message) {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
 
 export function useReveal() {
   useEffect(() => {
