@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useReveal, GoldButton, OutlineButton, PHONE, TEL, SMS } from './shared';
 import Icons from './icons';
 import FlowSection from './Flow';
+import Partners from './Partners';
 
 const services = [
   { icon: 'Pharmacy', title: 'Pharmacy Pickup',         desc: 'Prescriptions picked up and delivered right to your door, quickly and discreetly.' },
@@ -335,6 +336,9 @@ export default function Landing() {
 
       {/* ===== 4.5 DELIVERY FLOW ===== */}
       <FlowSection />
+
+      {/* ===== 4.7 MEMBERSHIP & PARTNERSHIPS ===== */}
+      <Partners />
 
       {/* ===== 5. SOCIAL PROOF ===== */}
       <section className="bg-cream py-24 sm:py-32">
