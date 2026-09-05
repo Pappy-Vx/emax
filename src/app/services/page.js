@@ -1,14 +1,27 @@
 import ServicesPage from '@/components/ServicesPage';
 
 export const metadata = {
-  title: 'Our Services — eMax Errands & More | Columbus, Indiana',
+  title: 'Delivery & Errand Services in Columbus Indiana | eMax Errands & More',
   description:
-    'Seven categories of local errand services across Columbus, Indiana — shopping & retail, delivery, mail, pharmacy, home tasks, business support, and event help. Call or text (812) 565-9585, no app required.',
-  keywords:
-    'errand services Columbus Indiana, local errand service, pharmacy pickup Columbus, store returns Columbus, delivery Columbus Indiana, mail courier Columbus, senior errand support Indiana',
+    'Same-day delivery and errand services in Columbus, Indiana — package delivery, pharmacy pickup, grocery runs, store returns, document delivery, business errands, and event support. Call or text (812) 565-9585, no app required.',
+  keywords: [
+    'delivery services Columbus Indiana',
+    'package delivery Columbus Indiana',
+    'same day delivery Columbus Indiana',
+    'grocery delivery Columbus Indiana',
+    'pharmacy pickup Columbus Indiana',
+    'store returns Columbus Indiana',
+    'document delivery Columbus Indiana',
+    'errand services Columbus Indiana',
+    'local courier Columbus Indiana',
+    'business delivery Columbus Indiana',
+    'delivery around Columbus Indiana',
+  ],
+  alternates: { canonical: 'https://emaxerrands.com/services' },
   openGraph: {
-    title: 'Our Services — eMax Errands & More | Columbus, Indiana',
-    description: 'Seven categories of local errands across Columbus and surrounding Indiana cities. Call or text (812) 565-9585.',
+    title: 'Delivery & Errand Services in Columbus Indiana | eMax Errands & More',
+    description: 'Same-day delivery and errand services across Columbus and surrounding Indiana cities. Call or text (812) 565-9585.',
+    url: 'https://emaxerrands.com/services',
     type: 'website',
   },
 };

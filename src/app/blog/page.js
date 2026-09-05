@@ -5,18 +5,21 @@ import { GoldButton } from '@/components/shared';
 import BlogReveal from '@/components/BlogReveal';
 
 export const metadata = {
-  title: 'Blog — Errand Tips & Community Stories | eMax Errands & More',
+  title: 'Delivery & Errand Tips for Columbus Indiana | eMax Errands & More Blog',
   description:
-    'Practical errand tips, time-saving advice, and community stories from eMax Errands & More, your trusted local errand service in Columbus, Indiana.',
-  keywords:
-    'errand tips Columbus Indiana, time saving tips errands, local errand service blog, senior errand service Columbus, errand advice Indiana',
-  alternates: {
-    canonical: 'https://emaxerrands.com/blog',
-  },
+    'Practical delivery and errand tips, time-saving advice, and community stories from eMax Errands & More — Columbus Indiana\'s local delivery and errand service.',
+  keywords: [
+    'delivery tips Columbus Indiana',
+    'errand tips Columbus Indiana',
+    'local delivery service blog Columbus Indiana',
+    'package delivery advice Indiana',
+    'errand service blog Columbus Indiana',
+    'time saving delivery Columbus Indiana',
+  ],
+  alternates: { canonical: 'https://emaxerrands.com/blog' },
   openGraph: {
-    title: 'The eMax Blog — Errand Tips & Community Stories',
-    description:
-      "Time-saving advice and community stories from Columbus, Indiana's local errand service.",
+    title: 'Delivery & Errand Tips for Columbus Indiana | eMax Blog',
+    description: "Time-saving delivery and errand advice from Columbus, Indiana's local errand service.",
     type: 'website',
     url: 'https://emaxerrands.com/blog',
   },
