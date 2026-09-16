@@ -11,7 +11,7 @@ export default function FloatingWhatsapp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with eMax Errands on WhatsApp"
-      className="fixed bottom-6 right-6 z-[90] flex items-center gap-2.5 rounded-full py-3 pl-3.5 pr-5 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(37,211,102,0.40)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(37,211,102,0.55)] sm:bottom-8 sm:right-8"
+      className="hidden sm:flex fixed bottom-8 right-8 z-[90] items-center gap-2.5 rounded-full py-3 pl-3.5 pr-5 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(37,211,102,0.40)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(37,211,102,0.55)]"
       style={{ background: '#25D366' }}
     >
       {/* WhatsApp icon */}

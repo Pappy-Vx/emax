@@ -1,4 +1,5 @@
 import { BLOG_POSTS, SITE_URL } from '@/data/blog-posts';
+import { ALL_SERVICE_SLUGS } from '@/data/services-data';
 
 export default function sitemap() {
   const staticRoutes = [
@@ -26,7 +27,20 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.85,
     },
+    {
+      url: `${SITE_URL}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
   ];
+
+  const serviceDetailRoutes = ALL_SERVICE_SLUGS.map((slug) => ({
+    url: `${SITE_URL}/services/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.88,
+  }));
 
   const blogRoutes = BLOG_POSTS.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
@@ -35,5 +49,5 @@ export default function sitemap() {
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...blogRoutes];
+  return [...staticRoutes, ...serviceDetailRoutes, ...blogRoutes];
 }

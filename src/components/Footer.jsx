@@ -30,6 +30,7 @@ export default function Footer() {
             <li><Link href="/" className="hover:text-gold transition">Home</Link></li>
             <li><Link href="/#services" className="hover:text-gold transition">Services</Link></li>
             <li><Link href="/#why" className="hover:text-gold transition">Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></Link></li>
+            <li><Link href="/faq" className="hover:text-gold transition">FAQ &amp; Policies</Link></li>
             <li><Link href="/contact" className="hover:text-gold transition">Contact</Link></li>
           </ul>
         </div>

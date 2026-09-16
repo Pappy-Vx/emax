@@ -16,6 +16,8 @@ export const metadata = {
     'local courier Columbus Indiana',
     'business delivery Columbus Indiana',
     'delivery around Columbus Indiana',
+    'delivery services in Columbus',
+    'delivery services in Columbus Indiana',
   ],
   alternates: { canonical: 'https://emaxerrands.com/services' },
   openGraph: {

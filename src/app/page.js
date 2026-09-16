@@ -16,6 +16,8 @@ export const metadata = {
     'food delivery Columbus Indiana',
     'local courier Columbus Indiana',
     'Bartholomew County delivery',
+    'delivery services in Columbus',
+    'delivery services in Columbus Indiana',
   ],
   alternates: {
     canonical: 'https://emaxerrands.com',

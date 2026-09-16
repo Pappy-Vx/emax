@@ -1,0 +1,148 @@
+export const SERVICES_DATA = {
+  'same-day-delivery': {
+    slug: 'same-day-delivery',
+    name: 'Same-Day Delivery',
+    headline: 'Same-Day Delivery in Columbus, Indiana',
+    tagline: 'Pickup and drop-off today. No app. No waiting.',
+    heroDesc: 'Need it delivered today? eMax Errands handles same-day pickup and delivery across Columbus, Indiana — packages, documents, prescriptions, groceries, and more. Call or text and we confirm in minutes.',
+    metaTitle: 'Same-Day Delivery in Columbus Indiana | eMax Errands & More',
+    metaDesc: 'Same-day delivery in Columbus, Indiana. eMax Errands picks up and delivers today — packages, documents, pharmacy, groceries and more. No app required. Call or text (812) 565-9585.',
+    keywords: ['same day delivery Columbus Indiana', 'same day delivery near me Columbus', 'same day courier Columbus Indiana', 'delivery service Columbus Indiana no app', 'delivery services in Columbus Indiana'],
+    whatIs: 'Same-day delivery means your item is picked up and delivered on the same calendar day — often within hours. eMax Errands handles same-day delivery across Columbus, Indiana and Bartholomew County for packages, documents, pharmacy prescriptions, groceries, and almost anything that needs to get somewhere quickly.',
+    facts: [
+      { label: 'Typical turnaround', value: '1–4 hours' },
+      { label: 'Coverage', value: 'Columbus IN + surrounding area' },
+      { label: 'Booking', value: 'Call or text (812) 565-9585' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Call or Text',       desc: 'Reach out to (812) 565-9585 with your pickup address, drop-off address, and what you need delivered.' },
+      { n: '2', title: 'We Confirm & Pick Up', desc: 'We confirm timing, pick up your item, and head to the destination — same day, guaranteed.' },
+      { n: '3', title: 'Delivered & Done',   desc: 'We deliver and text you confirmation. Most runs complete within 1–4 hours of booking.' },
+    ],
+    faqs: [
+      { q: 'How fast is same-day delivery in Columbus Indiana?', a: 'Most same-day deliveries in Columbus complete within 1–4 hours of booking. For urgent runs, we can often dispatch within 30 minutes. Call or text (812) 565-9585 and we\'ll confirm exact timing.' },
+      { q: 'What can you deliver same day in Columbus Indiana?', a: 'Packages, prescriptions, documents, groceries, store returns, flowers, forgotten items, and more. If it\'s legal and fits in a vehicle, we can deliver it same day in Columbus, Indiana.' },
+      { q: 'Do I need an app for same-day delivery in Columbus?', a: 'No app required. Just call or text (812) 565-9585 and a real person confirms your pickup and delivery details in minutes.' },
+      { q: 'How much does same-day delivery cost in Columbus Indiana?', a: 'Same-day delivery in Columbus starts around $15–$30 depending on distance, item size, and timing. Text (812) 565-9585 for a quick quote — no commitment required.' },
+      { q: 'What areas near Columbus Indiana do you cover?', a: 'We cover all of Columbus, Indiana and surrounding Bartholomew County, including Greenwood, Edinburgh, Seymour, Bloomington, and Nashville, Indiana.' },
+    ],
+  },
+
+  'pharmacy-pickup': {
+    slug: 'pharmacy-pickup',
+    name: 'Pharmacy Pickup',
+    headline: 'Pharmacy Pickup & Prescription Delivery in Columbus, Indiana',
+    tagline: 'Your prescriptions delivered to your door. No waiting in line.',
+    heroDesc: 'Can\'t make it to the pharmacy? eMax Errands picks up your prescriptions from any Columbus, Indiana pharmacy and delivers them directly to you — same day, no app required.',
+    metaTitle: 'Pharmacy Pickup & Prescription Delivery Columbus Indiana | eMax Errands',
+    metaDesc: 'Prescription pickup and delivery in Columbus, Indiana. eMax picks up your medications from CVS, Walgreens, Kroger Pharmacy or any local pharmacy and delivers same day. Call (812) 565-9585.',
+    keywords: ['pharmacy pickup Columbus Indiana', 'prescription delivery Columbus Indiana', 'prescription pickup service Columbus Indiana', 'pharmacy delivery near me Columbus', 'medication delivery Columbus Indiana'],
+    whatIs: 'Our pharmacy pickup service lets eMax handle your prescriptions from start to finish — picking them up from any Columbus, Indiana pharmacy and delivering them directly to your home or office the same day. We work with CVS, Walgreens, Kroger Pharmacy, Meijer Pharmacy, and any independent pharmacy in Bartholomew County.',
+    facts: [
+      { label: 'Pharmacies served', value: 'Any in Columbus IN' },
+      { label: 'Delivery', value: 'Same day to your door' },
+      { label: 'Privacy', value: 'Discreet & professional' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Tell Us the Details', desc: 'Text or call (812) 565-9585 with your name, the pharmacy name, and your delivery address.' },
+      { n: '2', title: 'We Pick Up',          desc: 'We go to the pharmacy, pick up your prescription, and head straight to you — no side trips.' },
+      { n: '3', title: 'Delivered to You',    desc: 'We deliver discreetly and text you when it\'s at your door. Same day, every time.' },
+    ],
+    faqs: [
+      { q: 'Can eMax pick up my prescription in Columbus Indiana?', a: 'Yes. We pick up prescriptions from any pharmacy in Columbus, Indiana — CVS, Walgreens, Kroger, Meijer, or any independent pharmacy. Call or text (812) 565-9585 with your name, pharmacy, and address.' },
+      { q: 'How do I set up a pharmacy pickup?', a: 'Call or text (812) 565-9585. Tell us which pharmacy, your name as it appears on the prescription, and your delivery address. We\'ll coordinate pickup and deliver the same day.' },
+      { q: 'Can you pick up controlled substances or ID-required prescriptions?', a: 'We follow all pharmacy policies. For ID-required pickups, let us know in advance and we can discuss the best approach for your specific prescription.' },
+      { q: 'How much does prescription delivery cost in Columbus Indiana?', a: 'Most pharmacy pickups in Columbus start around $15–$20 depending on distance. Text (812) 565-9585 for a quick quote.' },
+      { q: 'Is prescription pickup available same day?', a: 'Yes. Same-day prescription delivery is one of our most common services in Columbus, Indiana. As long as the prescription is ready at the pharmacy, we can typically deliver within 1–3 hours.' },
+    ],
+  },
+
+  'store-returns': {
+    slug: 'store-returns',
+    name: 'Store Returns',
+    headline: 'Store Returns & Exchanges Service in Columbus, Indiana',
+    tagline: 'Skip the line. We handle the return so you don\'t have to.',
+    heroDesc: 'Got something to return? eMax Errands picks up the item from your home, handles the return at any Columbus, Indiana store, and reports back when it\'s done — so you don\'t lose an hour in line.',
+    metaTitle: 'Store Returns Service Columbus Indiana | eMax Errands & More',
+    metaDesc: 'Store return service in Columbus, Indiana. eMax picks up your return and handles it at Target, Walmart, Best Buy, Kohl\'s and more. No waiting in line. Call (812) 565-9585.',
+    keywords: ['store returns service Columbus Indiana', 'return errand service Columbus Indiana', 'someone to do my store return Columbus', 'store return pickup service Indiana', 'return items for me Columbus Indiana'],
+    whatIs: 'Our store return service in Columbus, Indiana takes the entire process off your plate. We pick up the item and receipt from your location, drive to the store, wait in the returns line, handle the exchange or refund, and text you confirmation when it\'s complete. We work with Target, Walmart, Best Buy, Kohl\'s, TJ Maxx, and any other retailer in Columbus.',
+    facts: [
+      { label: 'Stores covered', value: 'Any in Columbus IN' },
+      { label: 'You prepare', value: 'Item + receipt or order #' },
+      { label: 'You get', value: 'Text confirmation when done' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Package the Return', desc: 'Have the item ready with any receipt, tags, or order confirmation. We\'ll pick it up from your door.' },
+      { n: '2', title: 'We Handle the Return', desc: 'We drive to the store, wait in line, and complete the return or exchange on your behalf.' },
+      { n: '3', title: 'Confirmation Sent',   desc: 'We text you as soon as the return is confirmed at the store, including refund or exchange details.' },
+    ],
+    faqs: [
+      { q: 'Can you handle my store return in Columbus Indiana?', a: 'Yes. We pick up the item from you, drive to the store, and complete the return or exchange. Works at Target, Walmart, Best Buy, Kohl\'s, and any Columbus retailer.' },
+      { q: 'What do I need to prepare for a store return?', a: 'Have the item packaged with any receipt, tags, or order confirmation number. We\'ll handle everything at the store and text you confirmation.' },
+      { q: 'How much does a store return errand cost in Columbus?', a: 'Store return errands typically start at $15–$25 depending on distance and store. Text (812) 565-9585 for a quick quote.' },
+      { q: 'What if the store needs me present for the return?', a: 'Some returns require the original cardholder. If you let us know in advance, we\'ll advise on options — many stores accept a proxy with the order confirmation and original payment info.' },
+      { q: 'Do you handle online order returns like Amazon?', a: 'Yes. We can drop off Amazon returns at a UPS Store, Kohl\'s, or any designated drop-off point in Columbus, Indiana. Just have the return label ready.' },
+    ],
+  },
+
+  'document-delivery': {
+    slug: 'document-delivery',
+    name: 'Document Delivery',
+    headline: 'Same-Day Document Delivery in Columbus, Indiana',
+    tagline: 'Time-sensitive paperwork, hand-delivered the same day.',
+    heroDesc: 'Signed contracts, legal filings, medical records, business documents — eMax Errands delivers time-sensitive paperwork anywhere in Columbus, Indiana the same day. No courier app, just a call or text.',
+    metaTitle: 'Same-Day Document Delivery Columbus Indiana | eMax Errands & More',
+    metaDesc: 'Same-day document delivery in Columbus, Indiana. eMax hand-delivers contracts, legal filings, medical records and business papers. No app required. Call (812) 565-9585.',
+    keywords: ['document delivery Columbus Indiana', 'same day document delivery Columbus Indiana', 'legal document delivery Columbus Indiana', 'business document courier Columbus Indiana', 'document courier service Columbus Indiana'],
+    whatIs: 'Our document delivery service in Columbus, Indiana provides same-day hand delivery for time-sensitive paperwork. Whether it\'s a signed lease, legal filings, medical records, business contracts, or any other important document, we pick it up and deliver it to the recipient the same day with professional discretion.',
+    facts: [
+      { label: 'Turnaround', value: 'Same day, often within hours' },
+      { label: 'Handling', value: 'Secure and professional' },
+      { label: 'Confirmation', value: 'Text on delivery' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Tell Us What & Where', desc: 'Call or text (812) 565-9585 with the document type, pickup address, and delivery recipient.' },
+      { n: '2', title: 'Secure Pickup',        desc: 'We pick up your document, handle it with care, and head directly to the delivery address.' },
+      { n: '3', title: 'Delivered & Confirmed', desc: 'Documents are delivered to the named recipient and you receive a text confirmation immediately.' },
+    ],
+    faqs: [
+      { q: 'Can you deliver legal documents same day in Columbus Indiana?', a: 'Yes. We hand-deliver contracts, filings, medical records, leases, and business paperwork across Columbus, Indiana the same day. Call or text (812) 565-9585.' },
+      { q: 'How secure is your document delivery service?', a: 'We treat every document with discretion and professionalism. Documents are delivered directly to the named recipient or their office, and we notify you immediately on delivery.' },
+      { q: 'How fast is document delivery in Columbus Indiana?', a: 'Most document deliveries complete within 1–3 hours of pickup. For urgent legal deadlines or filings, contact us first so we can confirm same-day timing.' },
+      { q: 'How much does document delivery cost in Columbus Indiana?', a: 'Document delivery in Columbus typically starts around $15–$25. Contact us at (812) 565-9585 for a quick quote based on your pickup and delivery addresses.' },
+      { q: 'Can you deliver to businesses, law offices, and medical offices?', a: 'Yes. We regularly deliver to law offices, medical practices, real estate firms, and other businesses across Columbus, Indiana and Bartholomew County.' },
+    ],
+  },
+
+  'post-office-runs': {
+    slug: 'post-office-runs',
+    name: 'Post Office Runs',
+    headline: 'Post Office Runs & Shipping Errands in Columbus, Indiana',
+    tagline: 'Skip the USPS line. We handle your mail and packages.',
+    heroDesc: 'Certified mail, package drop-offs, priority shipping, PO box pickups — eMax Errands handles your USPS, FedEx, and UPS runs in Columbus, Indiana so you don\'t lose your lunch break waiting in line.',
+    metaTitle: 'Post Office Runs & Mail Delivery Service Columbus Indiana | eMax Errands',
+    metaDesc: 'Post office run service in Columbus, Indiana. eMax handles USPS, FedEx, UPS drop-offs, certified mail and package pickups so you don\'t stand in line. Call (812) 565-9585.',
+    keywords: ['post office run service Columbus Indiana', 'USPS drop off service Columbus Indiana', 'mail delivery service Columbus Indiana', 'FedEx UPS drop off Columbus Indiana', 'shipping errand Columbus Indiana', 'certified mail service Columbus Indiana'],
+    whatIs: 'Our post office run service in Columbus, Indiana takes care of all your USPS, FedEx, and UPS errands. We pick up your packages, letters, or certified mail from your location, wait in line at the post office or carrier location, complete the drop-off, and send you the tracking number and receipt — so your day stays on track.',
+    facts: [
+      { label: 'Carriers covered', value: 'USPS · FedEx · UPS · DHL' },
+      { label: 'Services', value: 'Drop-offs, certified mail, pickups' },
+      { label: 'You get', value: 'Tracking # + receipt sent to you' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Pack It & Tell Us',  desc: 'Have your packages ready. Call or text (812) 565-9585 with the carrier and whether you need certified mail or standard drop-off.' },
+      { n: '2', title: 'We Pick Up & Drop Off', desc: 'We pick up from your location, wait in line at USPS, FedEx, or UPS, and complete the entire transaction.' },
+      { n: '3', title: 'Tracking Sent',      desc: 'We text you the tracking number and receipt photo as soon as it\'s processed. Done.' },
+    ],
+    faqs: [
+      { q: 'Can you run a post office errand for me in Columbus Indiana?', a: 'Yes. We pick up your packages, letters, or certified mail and handle the drop-off at USPS, FedEx, or UPS in Columbus, Indiana. Text (812) 565-9585 with the details.' },
+      { q: 'Can you send certified mail or signature-required packages?', a: 'Yes. We complete the certified mail form at USPS and send you the tracking number and receipt. For signature-required packages, we can handle most situations with the proper information.' },
+      { q: 'Can you pick up packages or mail waiting at the post office?', a: 'Yes. We pick up held packages, PO box contents, or items awaiting pickup at any Columbus-area post office or carrier hub.' },
+      { q: 'How much does a post office run cost in Columbus Indiana?', a: 'Post office runs typically start at $15 for a simple drop-off. Pricing varies based on number of items and wait time. Text (812) 565-9585 for a quick quote.' },
+      { q: 'Do you handle FedEx and UPS drop-offs too?', a: 'Yes. We handle drop-offs and pickups at FedEx Office, UPS Store, and any authorized drop-off location in Columbus, Indiana — not just the post office.' },
+    ],
+  },
+};
+
+export const ALL_SERVICE_SLUGS = Object.keys(SERVICES_DATA);

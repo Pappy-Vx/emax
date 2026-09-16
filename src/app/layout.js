@@ -52,6 +52,8 @@ export const metadata = {
     'delivery service near Columbus Indiana',
     'Bartholomew County delivery service',
     'Columbus Indiana courier',
+    'delivery services in Columbus',
+    'delivery services in Columbus Indiana',
   ],
   icons: {
     icon: [
@@ -122,6 +124,75 @@ const jsonLd = {
       { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Custom Local Errands Columbus Indiana' } },
     ],
   },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5.0',
+    reviewCount: '3',
+    bestRating: '5',
+    worstRating: '1',
+  },
+  review: [
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Brad D.' },
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Elizabeth with EMax was amazing to work with! I needed a package picked up and dropped off at a local UPS Store and she got right on it. Very friendly, trustworthy, and reliable. Would absolutely work with them again!',
+    },
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Adeola A.' },
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Outstanding service! This company is incredibly efficient, reliable, and delivers on time. The communication throughout was excellent — she kept me informed every step of the way. I highly recommend them.',
+    },
+    {
+      '@type': 'Review',
+      author: { '@type': 'Person', name: 'Tee A.' },
+      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
+      reviewBody: 'Excellent service by Elizabeth from eMax errands and more. Dealing with eMax was smooth and fast. I will definitely do it again.',
+    },
+  ],
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How much does eMax Errands cost?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Pricing depends on the distance and wait time. Local errands start from $9.99. Call or text (812) 565-9585 for a quick, no-obligation quote — no commitment required.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'What areas in Columbus, Indiana do you serve?',
+      acceptedAnswer: { '@type': 'Answer', text: 'We serve all of Columbus, Indiana and surrounding Bartholomew, Johnson, Jackson, Jennings, Decatur, Shelby and Brown Counties. We also extensively cover Greenwood, Edinburgh, Nashville, Bloomington, and Seymour, Indiana.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can you do same-day delivery in Columbus Indiana?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes. Same-day delivery in Columbus, Indiana is one of our most popular services. Call or text (812) 565-9585 and we will confirm pickup and delivery for the same day. We also do scheduled recurring errands at very affordable prices.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'How quickly can you complete a delivery or errand?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Most errands are completed same day. For urgent requests, we often respond within 5–20 minutes of your call or text. Reach us at (812) 565-9585 to confirm availability.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I need to download an app to book a delivery?',
+      acceptedAnswer: { '@type': 'Answer', text: 'No app required. Just call or text (812) 565-9585 and a real person will handle everything. No accounts, no downloads — just dependable local service.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'What delivery and errand services do you offer in Columbus Indiana?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Pharmacy pickups, package delivery, grocery delivery, store returns, post office/shipping runs, document delivery, library returns, forgotten item delivery, event errand support, DIY gift creation plus delivery, and custom errands across Columbus, Indiana and environs.' },
+    },
+    {
+      '@type': 'Question',
+      name: 'Are your delivery services available on weekends?',
+      acceptedAnswer: { '@type': 'Answer', text: 'Yes. We are available Monday through Friday 8 AM to 5 PM and Saturday 10 AM to 2 PM. Contact us for special availability outside those hours.' },
+    },
+  ],
 };
 
 export default function RootLayout({ children }) {
@@ -131,6 +202,10 @@ export default function RootLayout({ children }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
         <Navbar />
         {children}
