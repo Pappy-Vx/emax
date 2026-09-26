@@ -33,6 +33,12 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.75,
     },
+    {
+      url: `${SITE_URL}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
   ];
 
   const serviceDetailRoutes = ALL_SERVICE_SLUGS.map((slug) => ({

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { LogoMark, PHONE, TEL } from './shared';
 import Icons from './icons';
+import { FLAGS } from '@/lib/features';
 
 export default function Footer() {
   return (
@@ -29,6 +30,7 @@ export default function Footer() {
           <ul className="space-y-3 text-[15px]">
             <li><Link href="/" className="hover:text-gold transition">Home</Link></li>
             <li><Link href="/#services" className="hover:text-gold transition">Services</Link></li>
+            {FLAGS.pricing && <li><Link href="/pricing" className="hover:text-gold transition">Pricing</Link></li>}
             <li><Link href="/#why" className="hover:text-gold transition">Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></Link></li>
             <li><Link href="/faq" className="hover:text-gold transition">FAQ &amp; Policies</Link></li>
             <li><Link href="/contact" className="hover:text-gold transition">Contact</Link></li>

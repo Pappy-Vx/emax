@@ -177,6 +177,67 @@ const Icons = {
       <path d="M15 7c1-1.5 3-2 4-1s.5 2.5-1 3.5" />
     </>}
   />),
+  User: (p) => (
+    <Icon {...p} path={<>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </>}
+  />),
+  LogOut: (p) => (
+    <Icon {...p} path={<>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </>}
+  />),
+  List: (p) => (
+    <Icon {...p} path={<>
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </>}
+  />),
+  ChevLeft: (p) => (
+    <Icon {...p} path={<path d="M15 18l-6-6 6-6" />} />
+  ),
+  Bell: (p) => (
+    <Icon {...p} path={<>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </>}
+  />),
+  CreditCard: (p) => (
+    <Icon {...p} path={<>
+      <rect x="1" y="4" width="22" height="16" rx="2" />
+      <line x1="1" y1="10" x2="23" y2="10" />
+    </>}
+  />),
+  Repeat: (p) => (
+    <Icon {...p} path={<>
+      <polyline points="17 1 21 5 17 9" />
+      <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+      <polyline points="7 23 3 19 7 15" />
+      <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    </>}
+  />),
+  Gift: (p) => (
+    <Icon {...p} path={<>
+      <polyline points="20 12 20 22 4 22 4 12" />
+      <rect x="2" y="7" width="20" height="5" />
+      <line x1="12" y1="22" x2="12" y2="7" />
+      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+    </>}
+  />),
+  Plus: (p) => (
+    <Icon {...p} path={<>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </>}
+  />),
 };
 
 export default Icons;

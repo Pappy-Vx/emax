@@ -1,8 +1,6 @@
 import { Outfit, DM_Sans } from 'next/font/google';
 import Script from 'next/script';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import FloatingWhatsapp from '@/components/FloatingWhatsapp';
+import ConditionalLayout from '@/components/ConditionalLayout';
 import './globals.css';
 
 const GA_ID = 'G-2FSLJD8ZGK'; // Replace with your GA4 Measurement ID
@@ -207,10 +205,9 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
-        <Navbar />
-        {children}
-        <Footer />
-        <FloatingWhatsapp />
+        <ConditionalLayout>
+          {children}
+        </ConditionalLayout>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"
