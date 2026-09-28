@@ -14,13 +14,17 @@ export const PLANS = [
   {
     id: 'individual',
     name: 'Individual',
-    price: 49,
-    errands: 4,
+    tagline: 'Everyday Ease',
+    price: 83.99,
+    yearlyPrice: 839.90,  // save $167.98 — 2 months free
+    rank: 1,
+    errands: 5,
     for: 'Busy professionals & solo households',
     iconKey: 'Briefcase',
     features: [
-      '4 errands per month',
+      '5 errands per month',
       'Same-day scheduling',
+      '$16.79 per errand (vs $19.99 pay-as-you-go)',
       '2 saved addresses',
       'Text updates on every errand',
       'Unused errands roll over 1 month',
@@ -29,7 +33,10 @@ export const PLANS = [
   {
     id: 'family',
     name: 'Family & Senior Care',
-    price: 99,
+    tagline: 'Helping Hand',
+    price: 149.99,
+    yearlyPrice: 1499.90,  // save $299.98 — 2 months free
+    rank: 2,
     errands: 10,
     for: 'Families, seniors & caregivers',
     popular: true,
@@ -37,22 +44,27 @@ export const PLANS = [
     features: [
       '10 errands per month',
       'Priority pharmacy pickups',
+      '$14.99 per errand (vs $19.99 pay-as-you-go)',
       'Recurring weekly schedule',
       'Up to 5 saved addresses',
-      'Caregiver can get updates too',
+      'Caregiver updates included',
       'Unused errands roll over 1 month',
     ],
   },
   {
     id: 'business',
     name: 'Business',
-    price: 199,
-    errands: 25,
+    tagline: 'Business Support',
+    price: 311.99,
+    yearlyPrice: 3119.90,  // save $623.98 — 2 months free
+    rank: 3,
+    errands: 24,
     for: 'Offices, shops & small teams',
     iconKey: 'Building',
     features: [
-      '25 errands per month',
+      '24 errands per month',
       'Document & supply runs',
+      '$12.99 per errand (vs $19.99 pay-as-you-go)',
       'Up to 3 team logins',
       'Unlimited saved addresses',
       'Monthly invoice & receipts',
@@ -62,3 +74,19 @@ export const PLANS = [
 ];
 
 export const ADDRESS_LIMIT = { individual: 2, family: 5, business: 99 };
+
+export const PLAN_MAP = new Map(PLANS.map((p) => [p.id, p]));
+
+/** Returns the dollar amount for a given plan + billing cycle */
+export function planPrice(planId, cycle) {
+  const p = PLAN_MAP.get(planId);
+  if (!p) return 0;
+  return cycle === 'yearly' ? p.yearlyPrice : p.price;
+}
+
+/** Returns yearly savings vs 12 months of monthly billing */
+export function yearlySavings(planId) {
+  const p = PLAN_MAP.get(planId);
+  if (!p) return 0;
+  return p.price * 12 - p.yearlyPrice;
+}

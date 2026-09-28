@@ -24,13 +24,7 @@ export const FLAGS = {
   /** Show /dashboard link (customer portal — future) */
   dashboard:      bool('NEXT_PUBLIC_FF_DASHBOARD',      true),
   /** Replace phone CTA with an inline booking form */
-  bookingForm:    bool('NEXT_PUBLIC_FF_BOOKING_FORM',   true),
-  /** Show the live route card animation on homepage */
-  liveRouteCard:  bool('NEXT_PUBLIC_FF_LIVE_ROUTE',     true),
-  /** Show blog section in nav */
-  blog:           bool('NEXT_PUBLIC_FF_BLOG',           true),
-  /** Show partner logos strip */
-  partners:       bool('NEXT_PUBLIC_FF_PARTNERS',       true),
+
 };
 
 /**

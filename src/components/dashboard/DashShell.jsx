@@ -13,6 +13,7 @@ const NAV = [
   { id: 'errands',       label: 'My Errands',      href: '/dashboard/errands',       icon: 'List' },
   { id: 'recurring',     label: 'Recurring',       href: '/dashboard/recurring',     icon: 'Repeat' },
   { id: 'addresses',     label: 'Addresses',       href: '/dashboard/addresses',     icon: 'Pin' },
+  { id: 'subscription',  label: 'Subscription',    href: '/dashboard/subscription',  icon: 'Repeat' },
   { id: 'billing',       label: 'Billing',         href: '/dashboard/billing',       icon: 'Briefcase' },
   { id: 'cards',         label: 'Payment Methods', href: '/dashboard/cards',         icon: 'CreditCard' },
   { id: 'notifications', label: 'Notifications',   href: '/dashboard/notifications', icon: 'Bell' },
@@ -28,6 +29,7 @@ function DashShellInner({ children }) {
   const [d, up] = useDash();
   const [user, setUser] = useState(null);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     const u = getUser();
@@ -171,16 +173,27 @@ function DashShellInner({ children }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-5 sm:p-6 page-in">
+        <main className="flex-1 p-4 sm:p-6 pb-24 md:pb-6 page-in">
           {children}
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-navy/8 z-30 flex">
-          {NAV.slice(0, 5).map(({ id, label, href, icon }) => {
+        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-navy/8 z-30 flex safe-bottom">
+          {[...NAV.slice(0, 4), { id: 'more', label: 'More', href: null, icon: 'List' }].map(({ id, label, href, icon }) => {
             const I = Icons[icon] || Icons.List;
-            const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
-            return (
+            const isActive = href && (pathname === href || (href !== '/dashboard' && pathname.startsWith(href)));
+            const isMore = id === 'more';
+            return isMore ? (
+              <button
+                key="more"
+                type="button"
+                onClick={() => setMoreOpen(true)}
+                className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition ${moreOpen ? 'text-gold' : 'text-navy/40'}`}
+              >
+                <Icons.List size={20} stroke={moreOpen ? 2.2 : 1.8} />
+                <span>More</span>
+              </button>
+            ) : (
               <Link key={id} href={href} className={`flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] font-medium transition ${isActive ? 'text-gold' : 'text-navy/40'}`}>
                 <I size={20} stroke={isActive ? 2.2 : 1.8} />
                 <span>{label.split(' ')[0]}</span>
@@ -190,10 +203,53 @@ function DashShellInner({ children }) {
         </nav>
       </div>
 
+      {/* Mobile "More" drawer */}
+      {moreOpen && (
+        <>
+          <div className="md:hidden fixed inset-0 bg-navy/40 backdrop-blur-sm z-40" onClick={() => setMoreOpen(false)} />
+          <div className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-3xl shadow-2xl pb-safe">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-navy/8">
+              <div className="text-sm font-semibold text-navy">Menu</div>
+              <button type="button" onClick={() => setMoreOpen(false)} className="grid place-items-center w-8 h-8 rounded-full bg-navy/5">
+                <Icons.X size={16} stroke={2} className="text-navy" />
+              </button>
+            </div>
+            <div className="p-3 grid grid-cols-2 gap-1 max-h-[60vh] overflow-y-auto">
+              {NAV.map(({ id, label, href, icon }) => {
+                const I = Icons[icon] || Icons.List;
+                const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+                return (
+                  <Link
+                    key={id}
+                    href={href}
+                    onClick={() => setMoreOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
+                      isActive ? 'bg-gold/10 text-navy font-semibold' : 'text-navy/60 hover:bg-navy/5 hover:text-navy'
+                    }`}
+                  >
+                    <I size={18} stroke={isActive ? 2.2 : 1.8} className={isActive ? 'text-gold' : ''} />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="px-5 py-3 border-t border-navy/8">
+              <button
+                onClick={() => { setMoreOpen(false); handleLogout(); }}
+                className="flex items-center gap-2 text-sm text-navy/50 hover:text-navy transition w-full py-2"
+              >
+                <Icons.LogOut size={16} stroke={1.8} />
+                Sign out
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* FAB on mobile */}
       <button
         onClick={openRequest}
-        className="md:hidden fixed bottom-20 right-5 w-12 h-12 rounded-full bg-gold text-navy shadow-gold flex items-center justify-center z-40"
+        className="md:hidden fixed bottom-20 right-4 w-12 h-12 rounded-full bg-gold text-navy shadow-gold flex items-center justify-center z-40"
         type="button"
       >
         <Icons.Plus size={22} stroke={2.5} />

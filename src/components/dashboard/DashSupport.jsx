@@ -27,7 +27,7 @@ export default function DashSupport() {
     if (!message.trim()) return;
     setSent(true);
     setMessage('');
-    notify('Message sent! We\'ll reply within 1 business day.');
+    notify('Message sent! We will reply within 1 business day.');
     setTimeout(() => setSent(false), 3000);
   };
 
@@ -80,7 +80,7 @@ export default function DashSupport() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={4}
-            placeholder="Describe your question or issue and we'll get back to you within 1 business day…"
+            placeholder="Describe your question or issue and we will get back to you within 1 business day…"
             className="field resize-none w-full mb-3"
           />
           <button

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import Icons from '@/components/icons';
 import { useDash } from '@/lib/dash-store';
 import { useDashCtx } from '@/lib/dash-context';
@@ -73,8 +74,14 @@ export default function DashAddresses() {
       </div>
 
       {!canAdd && (
-        <div className="text-sm text-navy/55 bg-navy/5 rounded-2xl p-4">
-          You've reached the limit for your plan ({limit} addresses). Upgrade to add more.
+        <div className="text-sm text-navy/55 bg-navy/5 rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+          <span>You have reached the address limit for your plan ({limit} addresses).</span>
+          <Link
+            href="/dashboard/subscription"
+            className="text-xs font-semibold text-navy px-3 py-1.5 rounded-lg bg-gold/15 hover:bg-gold/25 transition whitespace-nowrap"
+          >
+            Upgrade plan →
+          </Link>
         </div>
       )}
 

@@ -1,31 +1,63 @@
 import { loadStore, saveStore } from './plans';
+import { api } from './api';
 
-export function getUser() { return loadStore().user ?? null; }
-export function getPlan() { return loadStore().plan ?? null; }
-export function getSelectedPlan() { return loadStore().selectedPlan ?? 'family'; }
-export function setUser(u) { saveStore({ user: u }); }
-export function setPlan(p) { saveStore({ plan: p }); }
-export function setSelectedPlan(id) { saveStore({ selectedPlan: id }); }
-export function logout() { saveStore({ user: null, plan: null }); }
+// ── Store accessors ───────────────────────────────────────────────
+export const getUser         = () => loadStore().user         ?? null;
+export const getPlan         = () => loadStore().plan         ?? null;
+export const getToken        = () => loadStore().token        ?? null;
+export const getSelectedPlan = () => loadStore().selectedPlan ?? 'family';
 
-export async function signIn({ email, password, name: displayName }) {
-  if (!email || !password) throw new Error('Email and password are required.');
-  await new Promise((r) => setTimeout(r, 700));
-  // TODO: replace with POST /api/auth/login → { user, token }
-  const name = displayName || email
-    .split('@')[0]
-    .replace(/[._\-+]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-  const user = { id: 'mock-001', name, email, phone: '', role: 'customer' };
-  setUser(user);
-  return user;
+export const setUser         = (u) => saveStore({ user: u });
+export const setPlan         = (p) => saveStore({ plan: p });
+export const setToken        = (t) => saveStore({ token: t });
+export const setSelectedPlan = (id) => saveStore({ selectedPlan: id });
+
+export const logout = () => saveStore({ user: null, plan: null, token: null });
+
+/**
+ * Persist a successful auth response from the backend.
+ * Works for both email/OTP login and Google OAuth.
+ */
+export function applySession({ access_token, user }) {
+  if (access_token) setToken(access_token);
+  if (user) {
+    setUser(user);
+    if (user.planId) setPlan(user.planId);
+  }
 }
 
-export async function signUp({ email, password, name }) {
-  if (!email || !password || !name) throw new Error('All fields are required.');
-  await new Promise((r) => setTimeout(r, 900));
-  // TODO: replace with POST /api/auth/register
-  const user = { id: 'mock-' + Date.now(), name, email, phone: '', role: 'customer' };
-  setUser(user);
-  return user;
+// ── Auth actions (all backed by the real API) ─────────────────────
+
+/**
+ * Register a new account.
+ * The backend always responds with { otpRequired: true } — no JWT yet.
+ */
+export async function signUp({ name, email, password, phone, referredBy }) {
+  return api.auth.register({ name, email, password, phone, referredBy });
 }
+
+/**
+ * Sign in with email + password.
+ * Returns either { access_token, user } (no 2FA) or { otpRequired: true } (2FA enabled).
+ * Stores the session automatically when a token is returned.
+ */
+export async function signIn({ email, password }) {
+  const res = await api.auth.login(email, password);
+  if (!res.otpRequired) applySession(res);
+  return res;
+}
+
+/**
+ * Verify the 6-digit OTP (used for both registration and 2FA login).
+ * On success stores the session and returns { access_token, user }.
+ */
+export async function verifyOtp(email, otp) {
+  const res = await api.auth.verifyOtp(email, otp);
+  applySession(res);
+  return res;
+}
+
+/**
+ * Resend a new OTP to the given email.
+ */
+export const resendOtp = (email) => api.auth.resendOtp(email);

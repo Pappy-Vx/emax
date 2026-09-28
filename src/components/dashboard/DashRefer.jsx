@@ -30,7 +30,7 @@ export default function DashRefer() {
 
   const shareEmail = () => {
     const subject = 'Try eMax Errands & More';
-    const body = `Hey! I've been using eMax Errands & More to handle my errands and it's been a lifesaver. Use my referral code ${code} at ${referralLink} to get started.\n\nEach errand they run for me has been on time and hassle-free.`;
+    const body = `Hey! I have been using eMax Errands & More to handle my errands and it has been a lifesaver. Use my referral code ${code} at ${referralLink} to get started.\n\nEach errand they run has been on time and hassle-free.`;
     window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
   };
 

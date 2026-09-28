@@ -248,6 +248,10 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
 .dash-sidebar { width: 240px; flex-shrink: 0; }
 @media (max-width: 767px) { .dash-sidebar { display: none; } }
 
+/* mobile safe-area bottom padding for nav / drawers */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pb-safe { padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 1.25rem)); }
+
 /* hide scrollbars on filter strip */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

@@ -1,24 +1,88 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Icons from '@/components/icons';
-import { PLANS } from '@/lib/plans';
+import { PLANS, planPrice, yearlySavings } from '@/lib/plans';
 import { getSelectedPlan, setSelectedPlan, setPlan, getUser } from '@/lib/auth';
-import { ApplePayButton, cardBrand, fmtCard, fmtExp } from '@/components/dashboard/DashUI';
+import { api } from '@/lib/api';
+import { ApplePayButton, GooglePayButton, cardBrand, fmtCard, fmtExp } from '@/components/dashboard/DashUI';
+import { useGooglePay } from '@/lib/use-google-pay';
+import PaymentResultModal from '@/components/PaymentResultModal';
 
 const ICON_MAP = { Briefcase: Icons.Briefcase, Heart: Icons.Heart, Building: Icons.Building };
 
-export default function CheckoutPage() {
-  const router = useRouter();
-  const [selectedId, setSelectedId_local] = useState(getSelectedPlan);
-  const [card, setCard] = useState({ name: '', number: '', exp: '', cvc: '', zip: '' });
-  const [state, setState] = useState('idle'); // idle | processing | done
-  const [err, setErr] = useState('');
+// ── Payment method selector ──────────────────────────────────────
+function MethodTab({ id, active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(id)}
+      className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all text-xs font-semibold ${
+        active
+          ? 'border-gold bg-gold/5 text-navy'
+          : 'border-navy/10 bg-white text-navy/55 hover:border-navy/20 hover:text-navy'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
-  const plan = PLANS.find((p) => p.id === selectedId) || PLANS[1];
-  const PlanIcon = ICON_MAP[plan.iconKey] || Icons.Heart;
-  const brand = cardBrand(card.number);
+// ── Stripe card-brand pill icons ─────────────────────────────────
+function CardBrandLogos() {
+  return (
+    <div className="flex items-center gap-1.5">
+      {/* Visa */}
+      <svg width="34" height="22" viewBox="0 0 34 22" fill="none" xmlns="http://www.w3.org/2000/svg" className="rounded border border-navy/10">
+        <rect width="34" height="22" rx="3" fill="white"/>
+        <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="#1A1F71" fontSize="8" fontWeight="bold" fontFamily="Arial,sans-serif">VISA</text>
+      </svg>
+      {/* Mastercard */}
+      <svg width="34" height="22" viewBox="0 0 34 22" xmlns="http://www.w3.org/2000/svg" className="rounded border border-navy/10">
+        <rect width="34" height="22" rx="3" fill="white"/>
+        <circle cx="13" cy="11" r="6.5" fill="#EB001B"/>
+        <circle cx="21" cy="11" r="6.5" fill="#F79E1B"/>
+        <path d="M17 5.9a6.5 6.5 0 010 10.2A6.5 6.5 0 0117 5.9z" fill="#FF5F00"/>
+      </svg>
+      {/* Amex */}
+      <svg width="34" height="22" viewBox="0 0 34 22" xmlns="http://www.w3.org/2000/svg" className="rounded border border-navy/10">
+        <rect width="34" height="22" rx="3" fill="#2E77BC"/>
+        <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold" fontFamily="Arial,sans-serif">AMEX</text>
+      </svg>
+    </div>
+  );
+}
+
+export default function CheckoutPage() {
+  const router        = useRouter();
+  const params        = useSearchParams();
+
+  // When coming from /dashboard/subscription, these are pre-filled
+  const switchMode    = params.get('switch') === 'true';
+  const paramPlanId   = params.get('planId');
+  const paramCycle    = params.get('billingCycle');
+  const paramCredit   = parseInt(params.get('creditCents') ?? '0', 10);
+  const paramCharge   = parseInt(params.get('chargeCents') ?? '0', 10);
+
+  const [selectedId, setSelectedId_local] = useState(
+    () => paramPlanId || getSelectedPlan() || PLANS[1].id,
+  );
+  const [billingCycle, setBillingCycle] = useState(paramCycle || 'monthly');
+  const [payMethod, setPayMethod] = useState('card');
+  const [card, setCard] = useState({ name: '', number: '', exp: '', cvc: '' });
+  const [state, setState] = useState('idle'); // idle | processing | done | failed
+  const [err, setErr]   = useState('');
+  const [failMsg, setFailMsg] = useState('');
+
+  const plan      = PLANS.find((p) => p.id === selectedId) || PLANS[1];
+  // In switch mode the charge amount was pre-calculated by the backend (proration applied)
+  const price     = switchMode && paramCharge > 0
+    ? paramCharge / 100
+    : planPrice(plan.id, billingCycle);
+  const savings   = yearlySavings(plan.id);
+  const brand     = cardBrand(card.number);
+  const { ready: gpayReady, requestPayment: gpayRequest } = useGooglePay();
 
   const setC = (k) => (e) => setCard((s) => ({ ...s, [k]: e.target.value }));
   const setNumber = (e) => setCard((s) => ({ ...s, number: fmtCard(e.target.value) }));
@@ -29,30 +93,105 @@ export default function CheckoutPage() {
     setSelectedPlan(id);
   };
 
-  const submit = async (e) => {
+  const guardUser = () => {
+    const user = getUser();
+    if (!user) { router.push('/login'); return null; }
+    return user;
+  };
+
+  const handleSuccess = (planId) => {
+    setPlan(planId);
+    setState('done');
+  };
+
+  const handleFailure = (msg) => {
+    setFailMsg(msg || 'Something went wrong. Please try again.');
+    setState('failed');
+  };
+
+  // ── Core charge dispatcher ───────────────────────────────────────
+  const processCharge = async (paymentPayload) => {
+    if (switchMode) {
+      // Plan switch — call subscription.switch() instead of payment.process()
+      const result = await api.subscription.switch(selectedId, billingCycle);
+      return result;
+    }
+    return api.payment.process({ ...paymentPayload, planId: selectedId, billingCycle });
+  };
+
+  // ── Card payment ─────────────────────────────────────────────────
+  const submitCard = async (e) => {
     e.preventDefault();
+    if (!guardUser()) return;
     setErr('');
     setState('processing');
-    await new Promise((r) => setTimeout(r, 1800)); // simulate Stripe
-    // TODO: replace with real Stripe charge
-    const user = getUser();
-    if (!user) { router.push('/login'); return; }
-    setPlan(selectedId);
-    setState('done');
-    setTimeout(() => router.push('/dashboard'), 2200);
+    try {
+      await processCharge({
+        paymentMethod:  'card',
+        cardNumber:     card.number.replace(/\s/g, ''),
+        cardExpiry:     card.exp.replace(/\s/g, ''),
+        cardCvv:        card.cvc,
+        cardholderName: card.name,
+      });
+      handleSuccess(selectedId);
+    } catch (ex) {
+      handleFailure(ex.message);
+    }
+  };
+
+  // ── Google Pay ────────────────────────────────────────────────────
+  const submitGooglePay = async () => {
+    if (!guardUser()) return;
+    setErr('');
+    setState('processing');
+    try {
+      const token = await gpayRequest({ amountCents: price * 100 });
+      await processCharge({ paymentMethod: 'google_pay', paymentToken: token });
+      handleSuccess(selectedId);
+    } catch (ex) {
+      if (ex?.statusCode === 'CANCELED') { setState('idle'); return; }
+      handleFailure(ex.message ?? 'Google Pay failed. Please try another method.');
+    }
+  };
+
+  // ── Apple Pay (stub) ─────────────────────────────────────────────
+  const submitApplePay = async () => {
+    if (!guardUser()) return;
+    setErr('');
+    setState('processing');
+    try {
+      await processCharge({ paymentMethod: 'apple_pay', paymentToken: 'apple_pay_stub_token' });
+      handleSuccess(selectedId);
+    } catch (ex) {
+      handleFailure(ex.message);
+    }
   };
 
   if (state === 'done') {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-5">
-        <div className="bg-white rounded-3xl shadow-card p-10 text-center max-w-sm w-full">
-          <div className="grid place-items-center w-16 h-16 rounded-full bg-green-50 text-green-600 mx-auto mb-5">
-            <Icons.Check size={32} stroke={2.5} />
-          </div>
-          <h2 className="font-display font-bold text-navy text-2xl mb-2">You're all set!</h2>
-          <p className="text-navy/60 text-[15px]">Your {plan.name} plan is active. Taking you to your dashboard…</p>
-        </div>
-      </div>
+      <PaymentResultModal
+        type="success"
+        title={switchMode ? 'Plan switched!' : 'You are all set!'}
+        message={
+          switchMode
+            ? `You are now on the ${plan.name} plan (${billingCycle}). Taking you to your dashboard…`
+            : `Your ${plan.name} plan is active. Taking you to your dashboard…`
+        }
+        redirectTo="/dashboard"
+        redirectMs={3000}
+      />
+    );
+  }
+
+  if (state === 'failed') {
+    return (
+      <PaymentResultModal
+        type="failure"
+        title="Payment failed"
+        message={failMsg}
+        redirectMs={0}
+        onClose={() => setState('idle')}
+      />
     );
   }
 
@@ -60,18 +199,54 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-cream page-in">
       {/* Header */}
       <div className="bg-white border-b border-navy/8 px-5 py-4 flex items-center gap-3">
-        <Link href="/pricing" className="flex items-center gap-1 text-navy/55 hover:text-navy text-sm font-medium transition">
+        <Link
+          href={switchMode ? '/dashboard/subscription' : '/pricing'}
+          className="flex items-center gap-1 text-navy/55 hover:text-navy text-sm font-medium transition"
+        >
           <Icons.ChevLeft size={16} stroke={2} />
-          Pricing
+          {switchMode ? 'Subscription' : 'Pricing'}
         </Link>
-        <div className="flex-1 text-center font-display font-bold text-navy text-base">Complete your order</div>
+        <div className="flex-1 text-center font-display font-bold text-navy text-base">
+          {switchMode ? 'Switch plan' : 'Complete your order'}
+        </div>
         <div className="w-16" />
       </div>
+
+      {/* Switch mode proration banner */}
+      {switchMode && paramCredit > 0 && (
+        <div className="bg-green-50 border-b border-green-100 px-5 py-3 flex items-center gap-2 text-sm text-green-700">
+          <Icons.Check size={16} stroke={2.5} />
+          <span>
+            <strong>${(paramCredit / 100).toFixed(2)}</strong> prorated credit from your current plan applied.
+            You&apos;ll be charged <strong>${(paramCharge / 100).toFixed(2)}</strong> today.
+          </span>
+        </div>
+      )}
 
       <div className="max-w-3xl mx-auto px-5 py-10 grid lg:grid-cols-2 gap-8">
         {/* Plan picker */}
         <div>
-          <h2 className="font-display font-bold text-navy text-xl mb-4">Choose a plan</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-navy text-xl">Choose a plan</h2>
+            {/* Billing cycle toggle */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-navy/5 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-3 py-1.5 rounded-lg transition ${billingCycle === 'monthly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('yearly')}
+                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
+              >
+                Yearly
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold text-navy font-bold">-17%</span>
+              </button>
+            </div>
+          </div>
           <div className="space-y-3">
             {PLANS.map((p) => {
               const PI = ICON_MAP[p.iconKey] || Icons.Briefcase;
@@ -95,7 +270,14 @@ export default function CheckoutPage() {
                     </div>
                     <div className="text-navy/55 text-xs">{p.errands} errands/month</div>
                   </div>
-                  <div className="font-display font-bold text-navy text-lg flex-shrink-0">${p.price}</div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="font-display font-bold text-navy text-lg">
+                      ${(billingCycle === 'yearly' ? p.yearlyPrice : p.price).toFixed(2)}
+                    </div>
+                    <div className="text-[10px] text-navy/45">
+                      {billingCycle === 'yearly' ? '/yr' : '/mo'}
+                    </div>
+                  </div>
                 </button>
               );
             })}
@@ -105,94 +287,153 @@ export default function CheckoutPage() {
           <div className="mt-6 bg-white rounded-2xl border border-navy/8 p-5">
             <div className="flex items-center justify-between text-[15px] mb-2">
               <span className="text-navy/60">{plan.name} plan</span>
-              <span className="font-semibold text-navy">${plan.price}.00</span>
+              <span className="font-semibold text-navy">${price}.00</span>
             </div>
             <div className="flex items-center justify-between text-[15px] mb-3 pb-3 border-b border-navy/8">
               <span className="text-navy/60">Billing</span>
-              <span className="text-navy">Monthly</span>
+              <span className="text-navy capitalize">{billingCycle}</span>
             </div>
+            {billingCycle === 'yearly' && (
+              <div className="flex items-center justify-between text-[13px] mb-3 pb-3 border-b border-navy/8 text-green-600 font-semibold">
+                <span>You save</span>
+                <span>${savings}.00 vs monthly</span>
+              </div>
+            )}
             <div className="flex items-center justify-between font-display font-bold text-navy text-lg">
               <span>Total today</span>
-              <span>${plan.price}.00</span>
+              <span>${price}.00</span>
             </div>
             <p className="mt-2 text-xs text-navy/40">Cancel or pause anytime from your dashboard.</p>
           </div>
         </div>
 
-        {/* Payment form */}
+        {/* Payment section */}
         <div>
           <h2 className="font-display font-bold text-navy text-xl mb-4">Payment</h2>
-          <div className="bg-white rounded-2xl border border-navy/8 p-6 space-y-4">
-            <ApplePayButton onClick={submit} />
-            <div className="relative flex items-center gap-3">
-              <div className="flex-1 h-px bg-navy/10" />
-              <span className="text-xs text-navy/40 font-medium">or pay with card</span>
-              <div className="flex-1 h-px bg-navy/10" />
+          <div className="bg-white rounded-2xl border border-navy/8 p-6 space-y-5">
+
+            {/* ── Method selector ── */}
+            <div>
+              <p className="text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-2">Payment method</p>
+              <div className="flex gap-2">
+                {/* Card / Stripe */}
+                <MethodTab id="card" active={payMethod === 'card'} onClick={setPayMethod}>
+                  <img src="/stripepay.png" alt="Stripe" className="h-5 w-auto object-contain" />
+                  Card
+                </MethodTab>
+
+                {/* Google Pay */}
+                <MethodTab id="google_pay" active={payMethod === 'google_pay'} onClick={setPayMethod}>
+                  <img src="/googlepay.png" alt="Google Pay" className="h-5 w-auto object-contain" />
+                  Google Pay
+                </MethodTab>
+
+                {/* Apple Pay */}
+                <MethodTab id="apple_pay" active={payMethod === 'apple_pay'} onClick={setPayMethod}>
+                  <img src="/applepay.png" alt="Apple Pay" className="h-5 w-auto object-contain" />
+                  Apple Pay
+                </MethodTab>
+              </div>
             </div>
 
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">Name on card</label>
-                <input type="text" placeholder="Jane Smith" value={card.name} onChange={setC('name')} required className="field" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">
-                  Card number
-                  {brand && <span className="ml-2 normal-case font-semibold text-navy/70">{brand}</span>}
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="0000 0000 0000 0000"
-                  value={card.number}
-                  onChange={setNumber}
-                  required
-                  maxLength={19}
-                  className="field font-mono tracking-widest"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-1">
-                  <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">Expiry</label>
-                  <input type="text" inputMode="numeric" placeholder="MM / YY" value={card.exp} onChange={setExp} required maxLength={7} className="field" />
+            {/* ── Card form ── */}
+            {payMethod === 'card' && (
+              <form onSubmit={submitCard} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <img src="/stripepay.png" alt="Stripe" className="h-6 w-auto object-contain opacity-70" />
+                  <CardBrandLogos />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">Name on card</label>
+                  <input type="text" placeholder="Jane Smith" value={card.name} onChange={setC('name')} required className="field" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">CVC</label>
-                  <input type="text" inputMode="numeric" placeholder="000" value={card.cvc} onChange={setC('cvc')} required maxLength={4} className="field" />
+                  <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">
+                    Card number
+                    {brand && <span className="ml-2 normal-case font-semibold text-navy/70">{brand}</span>}
+                  </label>
+                  <input
+                    type="text" inputMode="numeric" placeholder="0000 0000 0000 0000"
+                    value={card.number} onChange={setNumber} required maxLength={19}
+                    className="field font-mono tracking-widest"
+                  />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">ZIP</label>
-                  <input type="text" inputMode="numeric" placeholder="46201" value={card.zip} onChange={setC('zip')} required maxLength={5} className="field" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">Expiry</label>
+                    <input type="text" inputMode="numeric" placeholder="MM / YY" value={card.exp} onChange={setExp} required maxLength={7} className="field" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-navy/55 uppercase tracking-[0.14em] mb-1.5">CVC</label>
+                    <input type="text" inputMode="numeric" placeholder="000" value={card.cvc} onChange={setC('cvc')} required maxLength={4} className="field" />
+                  </div>
                 </div>
-              </div>
 
-              {err && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{err}</div>
-              )}
+                {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{err}</div>}
 
-              <button
-                type="submit"
-                disabled={state === 'processing'}
-                className="w-full rounded-full py-3.5 bg-gold text-navy font-semibold hover:bg-gold-deep transition disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {state === 'processing' ? (
+                <button
+                  type="submit"
+                  disabled={state === 'processing'}
+                  className="w-full rounded-full py-3.5 bg-gold text-navy font-semibold hover:bg-gold-deep transition disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {state === 'processing' ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Processing…
+                    </>
+                  ) : (
+                    <>Subscribe · ${price}/{billingCycle === 'yearly' ? 'yr' : 'mo'}</>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-center gap-1.5 text-xs text-navy/40">
+                  <Icons.Check size={14} stroke={2} className="text-navy/30" />
+                  SSL encrypted · Stripe secured
+                </div>
+              </form>
+            )}
+
+            {/* ── Google Pay ── */}
+            {payMethod === 'google_pay' && (
+              <div className="space-y-3">
+                {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{err}</div>}
+                {gpayReady ? (
                   <>
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Processing…
+                    <GooglePayButton
+                      onClick={submitGooglePay}
+                      disabled={state === 'processing'}
+                    />
+                    <p className="text-xs text-center text-navy/40">
+                      {state === 'processing' ? 'Processing…' : 'A payment sheet will open to confirm.'}
+                    </p>
                   </>
                 ) : (
-                  <>Subscribe · ${plan.price}/month</>
+                  <div className="py-6 text-center text-sm text-navy/50 bg-navy/3 rounded-xl">
+                    Google Pay is not available on this device or browser.
+                    <br />
+                    <span className="text-xs text-navy/40">Try Chrome on Android or desktop.</span>
+                  </div>
                 )}
-              </button>
-
-              <div className="flex items-center justify-center gap-1.5 text-xs text-navy/40 mt-1">
-                <Icons.Check size={14} stroke={2} className="text-navy/30" />
-                Secured by Stripe · SSL encrypted
               </div>
-            </form>
+            )}
+
+            {/* ── Apple Pay ── */}
+            {payMethod === 'apple_pay' && (
+              <div className="space-y-3">
+                {err && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{err}</div>}
+                <ApplePayButton
+                  onClick={submitApplePay}
+                  disabled={state === 'processing'}
+                />
+                <p className="text-xs text-center text-navy/40">
+                  {state === 'processing' ? 'Processing…' : 'Confirm via Touch ID or Face ID.'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -2,21 +2,69 @@
 import { useState } from 'react';
 import Icons from '@/components/icons';
 import { useDashCtx } from '@/lib/dash-context';
-import { Card, CardTitle, Field, ApplePayButton, cardBrand, fmtCard, fmtExp } from './DashUI';
+import { Card, CardTitle, Field, cardBrand, fmtCard, fmtExp } from './DashUI';
+import { useGooglePay } from '@/lib/use-google-pay';
 
 const INITIAL_CARDS = [
   { id: 'card1', brand: 'Visa', last4: '4242', exp: '09 / 27', primary: true },
 ];
 
+// ── Wallet row ────────────────────────────────────────────────────
+function WalletRow({ logo, alt, bg, name, subtitle, connected, busy, onConnect, onDisconnect }) {
+  return (
+    <div className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
+      connected ? 'border-gold bg-gold/5' : 'border-navy/10'
+    }`}>
+      <div className={`w-14 h-9 rounded-lg ${bg} flex items-center justify-center flex-shrink-0 overflow-hidden border border-navy/8`}>
+        <img src={logo} alt={alt} className="w-11 h-auto object-contain" />
+      </div>
+      <div className="flex-1">
+        <div className="font-semibold text-navy text-sm flex items-center gap-2">
+          {name}
+          {connected && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">
+              Connected
+            </span>
+          )}
+        </div>
+        <div className="text-xs text-navy/45">{subtitle}</div>
+      </div>
+      {connected ? (
+        <button
+          type="button"
+          onClick={onDisconnect}
+          className="text-xs border border-navy/12 text-navy/50 hover:text-red-500 hover:border-red-200 rounded-lg px-3 py-1.5 transition"
+        >
+          Disconnect
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onConnect}
+          disabled={busy}
+          className="text-xs border border-navy/12 text-navy/50 hover:text-navy rounded-lg px-3 py-1.5 transition disabled:opacity-50"
+        >
+          {busy ? 'Opening…' : 'Connect'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function DashCards() {
   const { notify } = useDashCtx();
-  const [cards, setCards] = useState(INITIAL_CARDS);
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: '', number: '', exp: '', cvc: '', zip: '' });
+  const [cards, setCards]     = useState(INITIAL_CARDS);
+  const [adding, setAdding]   = useState(false);
+  const [form, setForm]       = useState({ name: '', number: '', exp: '', cvc: '', zip: '' });
+  const [wallets, setWallets] = useState({ google: false, apple: false });
+  const [gpayBusy, setGpayBusy] = useState(false);
+  const [walletErr, setWalletErr] = useState('');
 
-  const setC = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
+  const { ready: gpayReady, requestPayment: gpayRequest } = useGooglePay();
+
+  const setC      = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
   const setNumber = (e) => setForm((s) => ({ ...s, number: fmtCard(e.target.value) }));
-  const setExp = (e) => setForm((s) => ({ ...s, exp: fmtExp(e.target.value) }));
+  const setExp    = (e) => setForm((s) => ({ ...s, exp: fmtExp(e.target.value) }));
 
   const addCard = (e) => {
     e.preventDefault();
@@ -36,6 +84,46 @@ export default function DashCards() {
   const remove = (id) => {
     setCards((s) => s.filter((c) => c.id !== id));
     notify('Card removed.');
+  };
+
+  // ── Google Pay connect ─────────────────────────────────────────
+  const connectGooglePay = async () => {
+    if (!gpayReady) {
+      setWalletErr('Google Pay is not available on this device or browser.');
+      return;
+    }
+    setWalletErr('');
+    setGpayBusy(true);
+    try {
+      // Opens the Google Pay sheet so the user confirms their wallet.
+      // The token would go to POST /payment/methods/save (SetupIntent) once Stripe is live.
+      const token = await gpayRequest({ amountCents: 0 });
+      // TODO: send token to backend → POST /payment/methods/save
+      // await api.payment.saveMethod({ type: 'google_pay', token });
+      console.log('[GooglePay] wallet token received:', token?.slice(0, 40) + '…');
+      setWallets((s) => ({ ...s, google: true }));
+      notify('Google Pay connected.');
+    } catch (ex) {
+      if (ex?.statusCode === 'CANCELED') { setGpayBusy(false); return; }
+      setWalletErr(ex.message ?? 'Could not connect Google Pay.');
+    } finally {
+      setGpayBusy(false);
+    }
+  };
+
+  const disconnectGooglePay = () => {
+    setWallets((s) => ({ ...s, google: false }));
+    notify('Google Pay disconnected.');
+  };
+
+  const connectApplePay = () => {
+    // Apple Pay requires Safari on macOS/iOS + Apple Pay JS API
+    notify('Apple Pay setup coming soon — requires Safari.');
+  };
+
+  const disconnectApplePay = () => {
+    setWallets((s) => ({ ...s, apple: false }));
+    notify('Apple Pay disconnected.');
   };
 
   return (
@@ -63,7 +151,6 @@ export default function DashCards() {
           <div className="space-y-3">
             {cards.map((c) => (
               <div key={c.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 ${c.primary ? 'border-gold bg-gold/5' : 'border-navy/10'}`}>
-                {/* Card visual */}
                 <div className="relative w-14 h-9 rounded-lg bg-navy overflow-hidden flex-shrink-0">
                   <div className="absolute inset-0 hex-pattern opacity-30" />
                   <div className="absolute bottom-1.5 left-2 text-[9px] text-white font-bold">{c.brand}</div>
@@ -89,10 +176,40 @@ export default function DashCards() {
         )}
       </Card>
 
-      {/* Apple Pay */}
+      {/* Digital Wallets */}
       <Card>
         <CardTitle>Digital Wallets</CardTitle>
-        <ApplePayButton onClick={() => notify('Apple Pay would connect here.')} />
+        <div className="space-y-3">
+          {walletErr && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              {walletErr}
+            </div>
+          )}
+
+          <WalletRow
+            logo="/applepay.png"
+            alt="Apple Pay"
+            bg="bg-black"
+            name="Apple Pay"
+            subtitle="Tap to pay with Face ID or Touch ID"
+            connected={wallets.apple}
+            busy={false}
+            onConnect={connectApplePay}
+            onDisconnect={disconnectApplePay}
+          />
+
+          <WalletRow
+            logo="/googlepay.png"
+            alt="Google Pay"
+            bg="bg-white"
+            name="Google Pay"
+            subtitle={gpayReady ? 'Pay with your Google account' : 'Not available on this browser'}
+            connected={wallets.google}
+            busy={gpayBusy}
+            onConnect={connectGooglePay}
+            onDisconnect={disconnectGooglePay}
+          />
+        </div>
       </Card>
 
       {/* Add card form */}

@@ -34,7 +34,7 @@ export default function BlogCommentForm({ postTitle, postSlug }) {
           Thanks for your comment!
         </h3>
         <p className="text-navy/60 text-sm">
-          We read every message. If you left a question, we'll follow up by email.
+          We read every message. If you left a question, we will follow up by email.
         </p>
         <button
           onClick={() => setStatus('idle')}

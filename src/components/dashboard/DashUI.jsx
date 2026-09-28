@@ -111,15 +111,39 @@ export const fmtExp = (v) => {
 };
 
 // ── ApplePayButton ───────────────────────────────────────────────
-export function ApplePayButton({ onClick }) {
+export function ApplePayButton({ onClick, disabled = false }) {
   return (
     <button
       onClick={onClick}
       type="button"
-      className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-black text-white font-semibold text-sm hover:bg-neutral-900 transition"
+      disabled={disabled}
+      className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-900 transition disabled:opacity-60"
+      style={{ letterSpacing: '-0.01em' }}
     >
-      <svg viewBox="0 0 32 14" width="32" height="14" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <path d="M5.98 1.92c-.5.59-1.3 1.05-2.08 1a2.1 2.1 0 01-.52-1.55C3.38.8 4.2.27 4.97.07c.5-.12.98.04 1.33.41.38.38.53.92.43 1.44zm.63.32c-1.15-.06-2.13.65-2.67.65-.54 0-1.38-.62-2.28-.6C.57 2.31-.3 3.26-.3 4.58c-.01 2.49 2.04 5.88 2.1 5.94.28.44.62.66 1 .64.37-.02.72-.24 1.32-.27.58-.03 1.03.25 1.4.25.37 0 .83-.28 1.37-.25.4.02.77.26 1.04.66.25-.25.48-.6.67-.97-1.16-.65-1.3-2.15-1.16-2.86.14-.7.63-1.22 1.22-1.44a2.37 2.37 0 00-1.91-1.04zM13.4 0h-1.93v10.12h1.15V6.7h1.8c1.62 0 2.6-1 2.6-2.36S15.03 0 13.4 0zm-.78.96h1.55c1.1 0 1.7.6 1.7 1.38 0 .8-.6 1.38-1.7 1.38h-1.55V.96zm7.25 2.22c-.93 0-1.65.42-2.03 1.12l.99.62c.23-.37.6-.56 1.04-.56.72 0 1.14.47 1.14 1.18v.28h-1.26c-1.2 0-1.88.57-1.88 1.5 0 .88.66 1.45 1.63 1.45.67 0 1.22-.3 1.54-.8v.72h1.1V5.56c0-1.44-.81-2.38-2.27-2.38zm-.1 4.72c-.57 0-.92-.27-.92-.7 0-.44.35-.7 1.04-.7h1.08v.22c0 .72-.47 1.18-1.2 1.18zm6.12-4.7c-.8 0-1.43.43-1.76 1.11V3.28h-1.12v6.84h1.12V6.5c0-1.17.52-1.83 1.44-1.83.86 0 1.27.54 1.27 1.57v3.88h1.12V5.97c0-1.68-.72-2.77-2.07-2.77zm5.28 0c-1.7 0-2.8 1.23-2.8 3.2 0 1.98 1.1 3.19 2.8 3.19 1.7 0 2.8-1.21 2.8-3.2 0-1.96-1.1-3.19-2.8-3.19zm0 1c1.03 0 1.65.8 1.65 2.2 0 1.4-.62 2.2-1.65 2.2s-1.65-.8-1.65-2.2c0-1.4.62-2.2 1.65-2.2z"/>
+      {/* Apple logo */}
+      <svg width="15" height="18" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
+        <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 420.2 0 298.6 0 234c0-198.4 130.3-303.3 258.6-303.3 66.9 0 122.7 44.2 164 44.2 39.5 0 101.7-47.8 177.8-47.8 29.9 0 122.1 3.2 183.8 96.9zm-246-66.5c-14.1-46.8-4.5-100.5 26.9-140.4 22.4-28.2 59-48.7 91-48.7 4.5 0 9 .6 13.5 1.3-2.6 49.3-25 95.5-55.2 127.5-21.7 23.1-57.2 44.2-76.2 60.3z"/>
+      </svg>
+      Pay
+    </button>
+  );
+}
+
+// ── GooglePayButton ──────────────────────────────────────────────
+export function GooglePayButton({ onClick, disabled = false }) {
+  return (
+    <button
+      onClick={onClick}
+      type="button"
+      disabled={disabled}
+      className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-white border-2 border-neutral-200 text-neutral-800 font-semibold text-[15px] hover:bg-neutral-50 transition disabled:opacity-60"
+    >
+      {/* Google G mark */}
+      <svg width="18" height="18" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
       </svg>
       Pay
     </button>
@@ -144,7 +168,7 @@ export function RequestModal({ open, onClose, onSubmit }) {
           <Icons.X size={16} />
         </button>
         <h2 className="font-display font-bold text-navy text-xl mb-1">Request an Errand</h2>
-        <p className="text-navy/55 text-sm mb-6">Fill in the details and we'll confirm shortly.</p>
+        <p className="text-navy/55 text-sm mb-6">Fill in the details and we will confirm shortly.</p>
         <form
           onSubmit={(e) => {
             e.preventDefault();

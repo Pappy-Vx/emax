@@ -7,11 +7,11 @@ import Icons from './icons';
 import { FLAGS } from '@/lib/features';
 
 const SERVICES = [
-  { label: 'Same-Day Delivery',   href: '/services/same-day-delivery' },
-  { label: 'Pharmacy Pickup',     href: '/services/pharmacy-pickup' },
-  { label: 'Store Returns',       href: '/services/store-returns' },
-  { label: 'Document Delivery',   href: '/services/document-delivery' },
-  { label: 'Post Office Runs',    href: '/services/post-office-runs' },
+  { label: 'Same-Day Delivery',  href: '/services/same-day-delivery' },
+  { label: 'Pharmacy Pickup',    href: '/services/pharmacy-pickup' },
+  { label: 'Store Returns',      href: '/services/store-returns' },
+  { label: 'Document Delivery',  href: '/services/document-delivery' },
+  { label: 'Post Office Runs',   href: '/services/post-office-runs' },
 ];
 
 function ServicesDropdown({ open, onClose }) {
@@ -45,6 +45,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [svcOpen, setSvcOpen] = useState(false);
+  const [mobileSvcOpen, setMobileSvcOpen] = useState(false);
   const svcRef = useRef(null);
   const pathname = usePathname();
   const router = useRouter();
@@ -56,6 +57,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const onPointerDown = (e) => {
       if (svcRef.current && !svcRef.current.contains(e.target)) setSvcOpen(false);
@@ -63,6 +65,12 @@ export default function Navbar() {
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setOpen(false);
+    setSvcOpen(false);
+  }, [pathname]);
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -83,7 +91,7 @@ export default function Navbar() {
     else router.push(`/#${id}`);
   };
 
-  const navLinkCls = 'px-3.5 py-2 text-[14px] font-medium text-navy/80 hover:text-navy rounded-full hover:bg-navy/5 transition';
+  const navLinkCls = 'px-3.5 py-2 text-[14px] font-medium text-navy/80 hover:text-navy rounded-full hover:bg-navy/5 transition whitespace-nowrap';
 
   return (
     <header
@@ -93,14 +101,14 @@ export default function Navbar() {
           : 'bg-white/60 backdrop-blur-sm border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[76px] flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between gap-4">
         {/* Logo */}
         <a href="/" onClick={handleHome} className="flex items-center flex-shrink-0">
-          <LogoMark size={56} tone="light" />
+          <LogoMark size={52} tone="light" />
         </a>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
+        {/* Desktop nav — lg and up (1024px+) */}
+        <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
           <a href="#" onClick={handleHome} className={navLinkCls}>Home</a>
 
           {/* Services dropdown */}
@@ -108,14 +116,13 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setSvcOpen((v) => !v)}
-              className={`${navLinkCls} flex items-center gap-1`}
+              className={`${navLinkCls} inline-flex items-center gap-1`}
             >
               Services
-              <Icons.Arrow
-                size={13}
-                stroke={2.2}
-                className={`transition-transform duration-200 ${svcOpen ? '-rotate-90' : 'rotate-90'}`}
-              />
+              {svcOpen
+                ? <Icons.ChevUp  size={14} stroke={2.2} className="text-navy/50" />
+                : <Icons.ChevDown size={14} stroke={2.2} className="text-navy/50" />
+              }
             </button>
             <ServicesDropdown open={svcOpen} onClose={() => setSvcOpen(false)} />
           </div>
@@ -123,78 +130,123 @@ export default function Navbar() {
           {FLAGS.pricing && (
             <Link href="/pricing" className={navLinkCls}>Pricing</Link>
           )}
-
           <a href="#" onClick={(e) => handleSection(e, 'why')} className={navLinkCls}>
             Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup>
           </a>
-
           <Link href="/blog" className={navLinkCls}>Blog</Link>
           <Link href="/contact" className={navLinkCls}>Contact</Link>
-
           {FLAGS.dashboard && (
-            <Link href="/dashboard" className={`${navLinkCls} flex items-center gap-1.5`}>
-              <Icons.User size={15} stroke={2} />
+            <Link href="/dashboard" className={`${navLinkCls} inline-flex items-center gap-1.5`}>
+              <Icons.User size={14} stroke={2} />
               Sign in
             </Link>
           )}
         </nav>
 
-        {/* Book Now — always visible */}
-        <GoldButton size="sm" href={TEL} className="hidden md:inline-flex flex-shrink-0">
+        {/* Book Now — desktop only */}
+        <GoldButton size="sm" href={TEL} className="hidden lg:inline-flex flex-shrink-0">
           <Icons.Phone size={15} stroke={2.2} />
           Book Now
         </GoldButton>
 
-        {/* Mobile menu toggle */}
+        {/* Hamburger — phones + tablets (below lg) */}
         <button
-          aria-label="Open menu"
+          aria-label={open ? 'Close menu' : 'Open menu'}
+          aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="md:hidden grid place-items-center w-11 h-11 rounded-full border border-navy/15 text-navy flex-shrink-0"
+          className="lg:hidden grid place-items-center w-11 h-11 rounded-full border border-navy/15 text-navy flex-shrink-0 transition hover:bg-navy/5"
         >
           {open ? <Icons.X size={20} /> : <Icons.Menu size={20} />}
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* ── Mobile / tablet drawer ─────────────────────────────── */}
       <div
-        className={`md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ${
-          open ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+        className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+          open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-5 pb-6 pt-2 flex flex-col gap-0.5 bg-white/97 border-t border-navy/10">
-          <a href="#" onClick={handleHome} className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">Home</a>
+        <div className="px-4 pb-6 pt-1 flex flex-col gap-0.5 bg-white border-t border-navy/8">
+          {/* Home */}
+          <a
+            href="#"
+            onClick={handleHome}
+            className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition"
+          >
+            Home
+          </a>
 
-          {/* Mobile services — flat list */}
-          <div className="px-3 pt-2 pb-1">
-            <div className="text-[11px] uppercase tracking-[0.16em] font-semibold text-navy/40 mb-1">Services</div>
-            {SERVICES.map((s) => (
-              <Link
-                key={s.href}
-                href={s.href}
-                onClick={() => setOpen(false)}
-                className="block py-2.5 text-[15px] font-medium text-navy/80 hover:text-navy"
-              >
-                {s.label}
-              </Link>
-            ))}
+          {/* Services accordion */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setMobileSvcOpen((v) => !v)}
+              className="w-full flex items-center justify-between px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition"
+            >
+              <span>Services</span>
+              {mobileSvcOpen
+                ? <Icons.ChevUp  size={16} stroke={2} className="text-navy/40" />
+                : <Icons.ChevDown size={16} stroke={2} className="text-navy/40" />
+              }
+            </button>
+            <div
+              className={`overflow-hidden transition-[max-height] duration-200 ${
+                mobileSvcOpen ? 'max-h-96' : 'max-h-0'
+              }`}
+            >
+              <div className="pl-5 pb-1 space-y-0.5">
+                {SERVICES.map((s) => (
+                  <Link
+                    key={s.href}
+                    href={s.href}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 px-3 py-2.5 text-[14px] text-navy/70 hover:text-navy rounded-xl hover:bg-navy/4 transition"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0" />
+                    {s.label}
+                  </Link>
+                ))}
+                <Link
+                  href="/services"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-1.5 px-3 py-2.5 text-[14px] font-semibold text-navy rounded-xl hover:bg-navy/4 transition"
+                >
+                  <Icons.Arrow size={13} stroke={2.2} className="text-gold" />
+                  All services
+                </Link>
+              </div>
+            </div>
           </div>
 
+          {/* Other links */}
           {FLAGS.pricing && (
-            <Link href="/pricing" onClick={() => setOpen(false)} className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">Pricing</Link>
+            <Link href="/pricing" onClick={() => setOpen(false)} className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
+              Pricing
+            </Link>
           )}
-          <a href="#" onClick={(e) => handleSection(e, 'why')} className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">Why eMax</a>
-          <Link href="/blog" onClick={() => setOpen(false)} className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">Blog</Link>
-          <Link href="/contact" onClick={() => setOpen(false)} className="px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">Contact</Link>
+          <a href="#" onClick={(e) => handleSection(e, 'why')} className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
+            Why eMax
+          </a>
+          <Link href="/blog" onClick={() => setOpen(false)} className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
+            Blog
+          </Link>
+          <Link href="/contact" onClick={() => setOpen(false)} className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
+            Contact
+          </Link>
           {FLAGS.dashboard && (
-            <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2 px-3 py-3 text-base font-medium text-navy rounded-xl hover:bg-navy/5">
+            <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2 px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
               <Icons.User size={16} stroke={2} />
               Sign in
             </Link>
           )}
-          <GoldButton href={TEL} className="mt-3 w-full" onClick={() => setOpen(false)}>
-            <Icons.Phone size={16} stroke={2.2} />
-            Call or Text Now
-          </GoldButton>
+
+          {/* CTA */}
+          <div className="mt-3 pt-3 border-t border-navy/8">
+            <GoldButton href={TEL} className="w-full" onClick={() => setOpen(false)}>
+              <Icons.Phone size={16} stroke={2.2} />
+              Call or Text Now
+            </GoldButton>
+          </div>
         </div>
       </div>
     </header>

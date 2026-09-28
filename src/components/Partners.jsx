@@ -6,6 +6,8 @@ const partners = [
   { src: '/columbus-chamber-wide-logo.png', alt: 'Columbus Indiana Chamber of Commerce', label: 'Chamber Member', cardBg: '#ffffff' },
   { src: '/LeadHERshiplogo.avif',           alt: 'LeadHERship',                          label: 'LeadHERship',   cardBg: '#111111' },
   { src: '/FocalPointLogos.jpeg',           alt: 'Focal Point',                          label: 'Focal Point',   cardBg: '#ffffff' },
+  { src: '/gracemaelogo.webp',              alt: 'Grace Mae',                            label: 'Grace Mae',     cardBg: '#ffffff' },
+  { src: '/Weichert.jpg',                   alt: 'Weichert Realtors',                    label: 'Weichert',      cardBg: '#ffffff' },
   { src: '/sanerlogo.jpg',                  alt: 'Saner',                                label: 'Saner',         cardBg: '#ffffff' },
   { src: '/turtleflowerlogo.jpg',           alt: 'Turtle Flower',                        label: 'Turtle Flower', cardBg: '#ffffff' },
   { src: '/zolalogo.jpg',                   alt: 'Zola',                                 label: 'Zola',          cardBg: '#ffffff' },

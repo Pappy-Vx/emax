@@ -295,7 +295,7 @@ export default async function BlogPostPage({ params }) {
                     Ready to hand off an errand?
                   </p>
                   <p className="text-white/55 text-xs leading-relaxed mb-5">
-                    No app. No subscription. Just call or text and we'll handle it.
+                    No app. No subscription. Just call or text and we will handle it.
                   </p>
                   <a
                     href="tel:+18125659585"

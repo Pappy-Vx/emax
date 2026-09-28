@@ -4,7 +4,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingWhatsapp from './FloatingWhatsapp';
 
-const NO_CHROME = ['/login', '/checkout'];
+const NO_CHROME = ['/login', '/checkout', '/auth/google'];
 
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname();
