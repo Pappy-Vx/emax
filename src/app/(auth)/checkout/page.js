@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import CheckoutPage from '@/components/auth/CheckoutPage';
 
 export const metadata = {
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <CheckoutPage />;
+  return (
+    <Suspense>
+      <CheckoutPage />
+    </Suspense>
+  );
 }
