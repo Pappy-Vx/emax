@@ -31,8 +31,12 @@ export class MailService implements OnModuleInit {
 
       this.from = `"eMax Errands & More" <${user}>`;
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,           // SSL — avoids the port-587 STARTTLS block
         auth: { user, pass },
+        connectionTimeout: 10_000,
+        socketTimeout: 10_000,
       });
 
       this.logger.log(`Mail: Gmail SMTP (${user})`);

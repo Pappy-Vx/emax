@@ -7,6 +7,7 @@ import { getUser, logout } from '@/lib/auth';
 import { DashProvider, useDashCtx } from '@/lib/dash-context';
 import { useDash } from '@/lib/dash-store';
 import { RequestModal, NotifDropdown, Toast } from './DashUI';
+import BeeLoader from '@/components/ui/BeeLoader';
 
 const NAV = [
   { id: 'overview',      label: 'Overview',       href: '/dashboard',               icon: 'Home' },
@@ -57,7 +58,7 @@ function DashShellInner({ children }) {
     up((s) => ({ ...s, errands: [newErrand, ...s.errands] }));
   };
 
-  if (!user) return null;
+  if (!user) return <BeeLoader message="Loading your dashboard…" />;
 
   const firstName = user.name?.split(' ')[0] || 'there';
 

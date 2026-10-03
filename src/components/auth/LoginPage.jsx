@@ -6,6 +6,7 @@ import Icons from '@/components/icons';
 import { signIn, signUp, verifyOtp, resendOtp, getSelectedPlan } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { PLANS } from '@/lib/plans';
+import BeeLoader from '@/components/ui/BeeLoader';
 
 const ICON_MAP = { Briefcase: Icons.Briefcase, Heart: Icons.Heart, Building: Icons.Building };
 
@@ -89,6 +90,7 @@ function OtpScreen({ email, onVerify, onBack }) {
 
   return (
     <div className="w-full max-w-[400px]">
+      <BeeLoader show={busy} message="Verifying code…" />
       <button onClick={onBack} type="button" className="flex items-center gap-1 text-navy/50 text-sm mb-8 hover:text-navy transition">
         <Icons.ChevLeft size={14} stroke={2} /> Back
       </button>
@@ -208,6 +210,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
+      <BeeLoader
+        show={busy}
+        message={mode === 'login' ? 'Signing you in…' : 'Creating your account…'}
+      />
       {/* Left: plan panel (hidden on small screens) */}
       <div className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-shrink-0">
         <PlanSide planId={planIdFromRedirect} />

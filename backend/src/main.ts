@@ -28,9 +28,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  const port = process.env.PORT ?? 3001;
-  await app.listen(port);
-  console.log(`eMax API running → http://localhost:${port}/api/v1`);
+  const port = parseInt(process.env.PORT ?? '3001', 10);
+  await app.listen(port, '0.0.0.0');
+  console.log(`eMax API running on port ${port}`);
 }
 
 bootstrap();

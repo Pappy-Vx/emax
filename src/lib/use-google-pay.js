@@ -51,6 +51,18 @@ export function useGooglePay() {
       if (!client) throw new Error('Google Pay not ready');
 
       const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+      if (!stripeKey) {
+        throw new Error(
+          'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. ' +
+          'Add your Stripe test key (pk_test_...) to .env.local and restart the dev server.',
+        );
+      }
+
+      // merchantId is required even in TEST; use the env var in production.
+      const merchantId =
+        environment === 'PRODUCTION'
+          ? process.env.NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID
+          : 'TEST';
 
       const paymentDataRequest = {
         apiVersion:      2,
@@ -65,9 +77,9 @@ export function useGooglePay() {
             tokenizationSpecification: {
               type: 'PAYMENT_GATEWAY',
               parameters: {
-                gateway:                  'stripe',
-                'stripe:version':         '2024-06-20',
-                'stripe:publishableKey':  stripeKey ?? 'pk_test_placeholder',
+                gateway:                 'stripe',
+                'stripe:version':        '2023-10-16',
+                'stripe:publishableKey': stripeKey,
               },
             },
           },
@@ -80,7 +92,9 @@ export function useGooglePay() {
         },
         merchantInfo: {
           merchantName: 'eMax Errands & More',
-          // merchantId: 'BCR2DN6D5LEOZPJT' required for PRODUCTION — register at pay.google.com/business/console
+          merchantId,
+          // For PRODUCTION register your merchant ID at pay.google.com/business/console
+          // and set NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID in Vercel env vars.
         },
       };
 
