@@ -2,10 +2,10 @@
  * Central API client for the eMax NestJS backend.
  * All requests go through apiFetch() which handles auth headers and error parsing.
  *
- * Base URL is set via NEXT_PUBLIC_API_URL in .env.local.
+ * Base URL is set via NEXT_PUBLIC_BASE_API_URL in .env.local.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
+const BASE = process.env.NEXT_PUBLIC_BASE_API_URL ?? 'http://localhost:3001/api/v1';
 
 // Read token directly from localStorage (same store key as auth.js) — avoids circular imports
 const STORE_KEY = 'emax_proto_v1';

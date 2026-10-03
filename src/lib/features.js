@@ -24,7 +24,6 @@ export const FLAGS = {
   /** Show /dashboard link (customer portal — future) */
   dashboard:      bool('NEXT_PUBLIC_FF_DASHBOARD',      true),
   /** Replace phone CTA with an inline booking form */
-
 };
 
 /**
