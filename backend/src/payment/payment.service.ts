@@ -85,6 +85,8 @@ export class PaymentService {
       metadata:       { planId: dto.planId },
     });
 
+    this.logger.log(`[${user.email}] payment succeeded — ${plan.name}/${billingCycle} $${(amountCents / 100).toFixed(2)} via ${dto.paymentMethod} (chargeId=${chargeId})`);
+
     return {
       success:       true,
       planId:        dto.planId,
@@ -104,7 +106,7 @@ export class PaymentService {
       // const intent = await stripe.paymentIntents.create({ amount: amountCents, currency: 'usd', payment_method: pm.id, confirm: true });
       // return intent.id;
     }
-    this.logger.warn(`[STUB] Card charge $${amountCents / 100} — configure STRIPE_SECRET_KEY for live processing.`);
+    this.logger.warn(`[STUB] Card charge $${(amountCents / 100).toFixed(2)} — configure STRIPE_SECRET_KEY for live processing.`);
     return `ch_stub_card_${Date.now()}`;
   }
 

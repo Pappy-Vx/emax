@@ -27,18 +27,36 @@ async function apiFetch(path, { method = 'GET', body, auth = false } = {}) {
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers,
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  });
+  // 30-second timeout — Render free tier can take ~30s to wake from sleep
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+
+  let res;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers,
+      signal: controller.signal,
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch (err) {
+    if (err?.name === 'AbortError') {
+      throw new Error('The server is taking too long to respond. Please try again in a moment.');
+    }
+    // DNS failure, CORS blocked, network down, etc.
+    throw new Error('Unable to reach the server. Please check your connection and try again.');
+  } finally {
+    clearTimeout(timer);
+  }
 
   let data;
   try { data = await res.json(); } catch { data = {}; }
 
   if (!res.ok) {
     const msg = data?.message;
-    throw new Error(Array.isArray(msg) ? msg.join('. ') : (msg ?? `Request failed (${res.status})`));
+    // Show first validation message only — arrays from class-validator can be very long
+    const text = Array.isArray(msg) ? msg[0] : (msg ?? 'Something went wrong. Please try again.');
+    throw new Error(text);
   }
 
   return data;

@@ -52,7 +52,8 @@ export class SubscriptionService {
     });
 
     const saved = await this.subRepo.save(sub);
-    this.logger.log(`Subscription created: ${planId}/${billingCycle} for user ${userId}`);
+    const owner = await this.usersService.findById(userId).catch(() => null);
+    this.logger.log(`[${owner?.email ?? userId}] subscription created: ${planId}/${billingCycle}`);
     return saved;
   }
 
@@ -183,7 +184,7 @@ export class SubscriptionService {
       metadata:       { prevPlanId: current.planId, newPlanId: dto.planId, prorationCreditCents, chargedCents },
     });
 
-    this.logger.log(`Plan switched: ${current.planId} → ${dto.planId}/${dto.billingCycle} for user ${userId}`);
+    this.logger.log(`[${user.email}] plan switched: ${current.planId} → ${dto.planId}/${dto.billingCycle} (credit=$${(prorationCreditCents/100).toFixed(2)} charged=$${(chargedCents/100).toFixed(2)})`);
     return { subscription: newSub, prorationCreditCents, chargedCents };
   }
 
@@ -194,6 +195,7 @@ export class SubscriptionService {
     const user = await this.usersService.findById(userId);
 
     await this.subRepo.update(sub.id, { cancelAtPeriodEnd: true });
+    this.logger.log(`[${user.email}] subscription cancellation scheduled — ${sub.planId} ends ${sub.currentPeriodEnd.toDateString()}`);
 
     this.events.emit(NOTIFY.SUBSCRIPTION_CANCELLED, {
       userId,
@@ -210,8 +212,10 @@ export class SubscriptionService {
   // ── Toggle auto-renew ────────────────────────────────────────────
 
   async toggleAutoRenew(userId: string, autoRenew: boolean): Promise<Subscription> {
-    const sub = await this.findActiveOrThrow(userId);
+    const sub  = await this.findActiveOrThrow(userId);
+    const user = await this.usersService.findById(userId).catch(() => null);
     await this.subRepo.update(sub.id, { autoRenew });
+    this.logger.log(`[${user?.email ?? userId}] auto-renew set to ${autoRenew} for ${sub.planId}`);
     return this.subRepo.findOneByOrFail({ id: sub.id });
   }
 

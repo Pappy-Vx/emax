@@ -1,6 +1,6 @@
 import {
   Controller, Post, Get, Body, UseGuards,
-  Request, Redirect, HttpCode, HttpStatus, Res,
+  Request, Redirect, HttpCode, HttpStatus, Res, Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +12,8 @@ import { GoogleAuthGuard } from './guards/google-auth.guard';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly authService: AuthService,
     private readonly cfg: ConfigService,
@@ -23,6 +25,7 @@ export class AuthController {
    */
   @Post('register')
   register(@Body() dto: RegisterDto) {
+    this.logger.log(`register attempt: ${dto.email}`);
     return this.authService.register(dto);
   }
 
@@ -36,6 +39,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Request() req) {
+    this.logger.log(`login attempt: ${req.user?.email}`);
     return this.authService.login(req.user);
   }
 
@@ -47,6 +51,7 @@ export class AuthController {
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
   verifyOtp(@Body() dto: VerifyOtpDto) {
+    this.logger.log(`verify-otp: ${dto.email}`);
     return this.authService.verifyOtp(dto);
   }
 
@@ -57,6 +62,7 @@ export class AuthController {
   @Post('resend-otp')
   @HttpCode(HttpStatus.OK)
   resendOtp(@Body('email') email: string) {
+    this.logger.log(`resend-otp: ${email}`);
     return this.authService.resendOtp(email);
   }
 

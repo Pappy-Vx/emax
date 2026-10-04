@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Errand } from './entities/errand.entity';
@@ -10,6 +10,8 @@ const POINTS_PER_ERRAND = 20;
 
 @Injectable()
 export class ErrandsService {
+  private readonly logger = new Logger(ErrandsService.name);
+
   constructor(
     @InjectRepository(Errand)
     private readonly repo: Repository<Errand>,
@@ -29,7 +31,10 @@ export class ErrandsService {
       recurringFrequency: dto.recurringFrequency,
       status:             'scheduled',
     });
-    return this.repo.save(errand);
+    const saved = await this.repo.save(errand);
+    const user = await this.usersService.findById(userId).catch(() => null);
+    this.logger.log(`[${user?.email ?? userId}] errand created (id=${saved.id} type=${dto.type} scheduledAt=${dto.scheduledAt})`);
+    return saved;
   }
 
   async findForUser(userId: string): Promise<Errand[]> {
@@ -54,6 +59,7 @@ export class ErrandsService {
     await this.repo.update(id, { status: 'cancelled' });
     const updated = await this.findOne(id, userId);
     const user = await this.usersService.findById(userId);
+    this.logger.log(`[${user.email}] errand cancelled (id=${id} type=${errand.type})`);
     this.notifications.notifyErrandUpdate(user.email, errand.type, 'cancelled').catch(() => {});
     return updated;
   }
@@ -65,6 +71,7 @@ export class ErrandsService {
     await this.usersService.addPoints(errand.userId, POINTS_PER_ERRAND);
     const updated = await this.repo.findOneBy({ id });
     const user = await this.usersService.findById(errand.userId);
+    this.logger.log(`[${user.email}] errand completed (id=${id} type=${errand.type} +${POINTS_PER_ERRAND} pts)`);
     this.notifications.notifyErrandUpdate(user.email, errand.type, 'completed').catch(() => {});
     return updated!;
   }
@@ -75,6 +82,7 @@ export class ErrandsService {
     await this.repo.update(id, { status });
     const updated = await this.repo.findOneBy({ id });
     const user = await this.usersService.findById(errand.userId);
+    this.logger.log(`[${user.email}] errand status → ${status} (id=${id} type=${errand.type})`);
     this.notifications.notifyErrandUpdate(user.email, errand.type, status).catch(() => {});
     return updated!;
   }

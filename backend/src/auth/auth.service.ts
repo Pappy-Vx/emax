@@ -47,24 +47,29 @@ export class AuthService {
 
   async login(user: User) {
     if (user.twoFaEnabled) {
+      this.logger.log(`2FA required for ${user.email} — dispatching OTP`);
       await this.dispatchOtp(user);
       return {
         otpRequired: true,
         message: 'A verification code has been sent to your email.',
       };
     }
+    this.logger.log(`Login successful: ${user.email}`);
     return this.issueToken(user);
   }
 
   async register(dto: RegisterDto) {
+    this.logger.log(`Creating account for ${dto.email}`);
     const user = await this.usersService.create(dto);
+    this.logger.log(`Account created: id=${user.id} email=${user.email}`);
     const sent = await this.dispatchOtp(user);
+    this.logger.log(`OTP dispatch for ${user.email}: emailSent=${sent}`);
     return {
       otpRequired: true,
       emailSent: sent,
       message: sent
         ? 'Account created. Please check your email for a 6-digit verification code.'
-        : 'Account created but we could not send the verification email. Please use Resend code once mail is configured.',
+        : 'Account created. Verification email could not be sent — use Resend code.',
     };
   }
 
@@ -72,19 +77,23 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user || !user.otpHash || !user.otpExpiresAt) {
+      this.logger.warn(`verify-otp failed (no pending OTP): ${dto.email}`);
       throw new UnauthorizedException('Invalid or expired verification code.');
     }
 
     if (new Date() > user.otpExpiresAt) {
+      this.logger.warn(`verify-otp failed (expired): ${dto.email}`);
       throw new UnauthorizedException('Verification code has expired. Please request a new one.');
     }
 
     if (!this.otpService.verify(dto.otp, user.otpHash)) {
+      this.logger.warn(`verify-otp failed (wrong code): ${dto.email}`);
       throw new UnauthorizedException('Incorrect verification code.');
     }
 
     const wasUnverified = !user.isVerified;
     await this.usersService.clearOtpAndVerify(user.id);
+    this.logger.log(`OTP verified: ${dto.email} (wasUnverified=${wasUnverified})`);
 
     if (wasUnverified) {
       this.mailService.sendWelcome(user.email, user.name).catch(() => {});
