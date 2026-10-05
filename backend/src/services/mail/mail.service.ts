@@ -11,8 +11,15 @@ interface MailOptions {
 @Injectable()
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
-  private transporter!: nodemailer.Transporter;
-  private from!: string;
+
+  // Production: Resend HTTP API
+  private resendApiKey!: string;
+  private prodFrom!: string;
+
+  // Development: Ethereal SMTP
+  private devTransporter!: nodemailer.Transporter;
+  private devFrom!: string;
+
   private readonly isProd: boolean;
 
   constructor(private readonly cfg: ConfigService) {
@@ -21,34 +28,22 @@ export class MailService implements OnModuleInit {
 
   async onModuleInit() {
     if (this.isProd) {
-      // ── Production: Gmail App Password ────────────────────────
-      const user = this.cfg.get<string>('GMAIL_USER') ?? '';
-      const pass = (this.cfg.get<string>('GMAIL_APP_PASSWORD') ?? '').replace(/\s/g, '');
+      this.resendApiKey = this.cfg.get<string>('RESEND_API_KEY') ?? '';
+      const senderEmail =
+        this.cfg.get<string>('RESEND_SENDER_EMAIL') ?? 'noreply@emaxerrands.com';
+      this.prodFrom = `eMax Errands & More <${senderEmail}>`;
 
-      if (!user || !pass) {
-        this.logger.error('GMAIL_USER or GMAIL_APP_PASSWORD not set — emails will not send in production.');
+      if (!this.resendApiKey) {
+        this.logger.error('RESEND_API_KEY not set — emails will not send in production.');
       }
-
-      this.from = `"eMax Errands & More" <${user}>`;
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,           // SSL — avoids the port-587 STARTTLS block
-        auth: { user, pass },
-        connectionTimeout: 10_000,
-        socketTimeout: 10_000,
-      });
-
-      this.logger.log(`Mail: Gmail SMTP (${user})`);
+      this.logger.log(`Mail: Resend HTTP API (from=${senderEmail})`);
     } else {
-      // ── Development: Ethereal fake inbox ─────────────────────
-      // Emails are NOT delivered. Instead you get a preview URL in the terminal.
-      // View captured emails at https://ethereal.email (or use the URL logged below).
+      // Ethereal captures emails locally — open the preview URL to read the OTP
       const account = await nodemailer.createTestAccount();
-      this.from = `"eMax Dev" <${account.user}>`;
-      this.transporter = nodemailer.createTransport({
-        host:   'smtp.ethereal.email',
-        port:   587,
+      this.devFrom = `"eMax Dev" <${account.user}>`;
+      this.devTransporter = nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
         secure: false,
         auth: { user: account.user, pass: account.pass },
       });
@@ -59,9 +54,11 @@ export class MailService implements OnModuleInit {
 
   async send(opts: MailOptions): Promise<void> {
     try {
-      const info = await this.transporter.sendMail({ from: this.from, ...opts });
-
-      if (!this.isProd) {
+      if (this.isProd) {
+        await this.sendViaResend(opts);
+        this.logger.log(`Email sent to ${opts.to}: "${opts.subject}"`);
+      } else {
+        const info = await this.devTransporter.sendMail({ from: this.devFrom, ...opts });
         const url = nodemailer.getTestMessageUrl(info);
         // ── Open this URL to read the email (OTP code is inside) ──
         this.logger.log(`📬 Email preview → ${url}`);
@@ -69,6 +66,31 @@ export class MailService implements OnModuleInit {
     } catch (err) {
       this.logger.error(`Failed to send email to ${opts.to}: ${(err as Error).message}`);
       throw err;
+    }
+  }
+
+  private async sendViaResend(opts: MailOptions): Promise<void> {
+    if (!this.resendApiKey) {
+      throw new Error('RESEND_API_KEY is not configured.');
+    }
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: this.prodFrom,
+        to: [opts.to],
+        subject: opts.subject,
+        html: opts.html,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      throw new Error(`Resend API ${res.status}: ${(body.message as string) ?? res.statusText}`);
     }
   }
 

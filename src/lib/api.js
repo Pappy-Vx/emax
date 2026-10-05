@@ -2,7 +2,7 @@
  * Central API client for the eMax NestJS backend.
  * All requests go through apiFetch() which handles auth headers and error parsing.
  *
- * Base URL is set via NEXT_PUBLIC_BASE_API_URL in .env.local.
+ * Base URL is set via BASE_API_URL in .env.local.
  */
 
 const BASE = process.env.BASE_API_URL ?? 'https://emax-oohv.onrender.com/api/v1';
