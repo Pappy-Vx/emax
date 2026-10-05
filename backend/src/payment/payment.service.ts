@@ -86,7 +86,6 @@ export class PaymentService {
     });
 
     this.logger.log(`[${user.email}] payment succeeded — ${plan.name}/${billingCycle} $${(amountCents / 100).toFixed(2)} via ${dto.paymentMethod} (chargeId=${chargeId})`);
-
     return {
       success:       true,
       planId:        dto.planId,
@@ -95,6 +94,21 @@ export class PaymentService {
       currency:      'usd',
       chargeId,
     };
+  }
+
+  async getHistory(userId: string) {
+    const rows = await this.paymentRepo.find({
+      where: { userId, isDeleted: false },
+      order: { createdAt: 'DESC' },
+    });
+    return rows.map((p) => ({
+      id:            p.id,
+      planId:        p.planId,
+      paymentMethod: p.paymentMethod,
+      amountCents:   p.amountCents,
+      status:        p.status,
+      createdAt:     p.createdAt,
+    }));
   }
 
   private async chargeCard(amountCents: number, dto: ProcessPaymentDto): Promise<string> {

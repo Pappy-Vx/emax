@@ -1,13 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Icons from '@/components/icons';
 import { useDashCtx } from '@/lib/dash-context';
 import { Card, CardTitle, Field, cardBrand, fmtCard, fmtExp } from './DashUI';
 import { useGooglePay } from '@/lib/use-google-pay';
-
-const INITIAL_CARDS = [
-  { id: 'card1', brand: 'Visa', last4: '4242', exp: '09 / 27', primary: true },
-];
+import { api } from '@/lib/api';
 
 // ── Wallet row ────────────────────────────────────────────────────
 function WalletRow({ logo, alt, bg, name, subtitle, connected, busy, onConnect, onDisconnect }) {
@@ -53,37 +50,71 @@ function WalletRow({ logo, alt, bg, name, subtitle, connected, busy, onConnect, 
 
 export default function DashCards() {
   const { notify } = useDashCtx();
-  const [cards, setCards]     = useState(INITIAL_CARDS);
-  const [adding, setAdding]   = useState(false);
-  const [form, setForm]       = useState({ name: '', number: '', exp: '', cvc: '', zip: '' });
-  const [wallets, setWallets] = useState({ google: false, apple: false });
-  const [gpayBusy, setGpayBusy] = useState(false);
+  const [wallets, setWallets]     = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [adding, setAdding]       = useState(false);
+  const [form, setForm]           = useState({ name: '', number: '', exp: '', cvc: '', zip: '' });
+  const [gpayBusy, setGpayBusy]   = useState(false);
   const [walletErr, setWalletErr] = useState('');
 
   const { ready: gpayReady, requestPayment: gpayRequest } = useGooglePay();
+
+  const reload = useCallback(() => {
+    return api.wallet.list()
+      .then(setWallets)
+      .catch(() => setWallets([]));
+  }, []);
+
+  useEffect(() => {
+    reload().finally(() => setLoading(false));
+  }, [reload]);
+
+  // Derive display state from the live wallet list
+  const cards        = wallets.filter((w) => w.type === 'card');
+  const googleWallet = wallets.find((w) => w.type === 'google_pay');
+  const appleWallet  = wallets.find((w) => w.type === 'apple_pay');
 
   const setC      = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
   const setNumber = (e) => setForm((s) => ({ ...s, number: fmtCard(e.target.value) }));
   const setExp    = (e) => setForm((s) => ({ ...s, exp: fmtExp(e.target.value) }));
 
-  const addCard = (e) => {
+  const addCard = async (e) => {
     e.preventDefault();
-    const last4 = form.number.replace(/\s/g, '').slice(-4);
-    const brand = cardBrand(form.number.replace(/\s/g, '')) || 'Card';
-    setCards((s) => [...s, { id: 'card' + Date.now(), brand, last4, exp: form.exp, primary: false }]);
-    notify('Card added!');
-    setAdding(false);
-    setForm({ name: '', number: '', exp: '', cvc: '', zip: '' });
+    const raw   = form.number.replace(/\s/g, '');
+    const last4 = raw.slice(-4);
+    const brand = cardBrand(raw) || 'Card';
+    const parts = form.exp.split('/');
+    const month = parseInt(parts[0]?.trim(), 10);
+    const year  = 2000 + parseInt(parts[1]?.trim(), 10);
+    try {
+      await api.wallet.save({ type: 'card', last4, brand, cardholderName: form.name, expiryMonth: month, expiryYear: year });
+      await reload();
+      notify('Card added!');
+      setAdding(false);
+      setForm({ name: '', number: '', exp: '', cvc: '', zip: '' });
+    } catch (err) {
+      setWalletErr(err.message);
+    }
   };
 
-  const makePrimary = (id) => {
-    setCards((s) => s.map((c) => ({ ...c, primary: c.id === id })));
-    notify('Default card updated.');
+  const makePrimary = async (id) => {
+    try {
+      await api.wallet.setDefault(id);
+      await reload();
+      notify('Default payment updated.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
 
-  const remove = (id) => {
-    setCards((s) => s.filter((c) => c.id !== id));
-    notify('Card removed.');
+  const remove = async (id) => {
+    try {
+      await api.wallet.remove(id);
+      setWallets((s) => s.filter((w) => w.id !== id));
+      notify('Payment method removed.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
 
   // ── Google Pay connect ─────────────────────────────────────────
@@ -95,13 +126,9 @@ export default function DashCards() {
     setWalletErr('');
     setGpayBusy(true);
     try {
-      // Opens the Google Pay sheet so the user confirms their wallet.
-      // The token would go to POST /payment/methods/save (SetupIntent) once Stripe is live.
       const token = await gpayRequest({ amountCents: 0 });
-      // TODO: send token to backend → POST /payment/methods/save
-      // await api.payment.saveMethod({ type: 'google_pay', token });
-      console.log('[GooglePay] wallet token received:', token?.slice(0, 40) + '…');
-      setWallets((s) => ({ ...s, google: true }));
+      await api.wallet.save({ type: 'google_pay', stripePaymentMethodId: token });
+      await reload();
       notify('Google Pay connected.');
     } catch (ex) {
       if (ex?.statusCode === 'CANCELED') { setGpayBusy(false); return; }
@@ -111,20 +138,39 @@ export default function DashCards() {
     }
   };
 
-  const disconnectGooglePay = () => {
-    setWallets((s) => ({ ...s, google: false }));
-    notify('Google Pay disconnected.');
+  const disconnectGooglePay = async () => {
+    if (!googleWallet) return;
+    try {
+      await api.wallet.remove(googleWallet.id);
+      setWallets((s) => s.filter((w) => w.id !== googleWallet.id));
+      notify('Google Pay disconnected.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
 
   const connectApplePay = () => {
-    // Apple Pay requires Safari on macOS/iOS + Apple Pay JS API
     notify('Apple Pay setup coming soon — requires Safari.');
   };
 
-  const disconnectApplePay = () => {
-    setWallets((s) => ({ ...s, apple: false }));
-    notify('Apple Pay disconnected.');
+  const disconnectApplePay = async () => {
+    if (!appleWallet) return;
+    try {
+      await api.wallet.remove(appleWallet.id);
+      setWallets((s) => s.filter((w) => w.id !== appleWallet.id));
+      notify('Apple Pay disconnected.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 text-center text-navy/40 text-sm">
+        Loading payment methods…
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -150,18 +196,20 @@ export default function DashCards() {
         ) : (
           <div className="space-y-3">
             {cards.map((c) => (
-              <div key={c.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 ${c.primary ? 'border-gold bg-gold/5' : 'border-navy/10'}`}>
+              <div key={c.id} className={`relative flex items-center gap-4 p-4 rounded-2xl border-2 ${c.isDefault ? 'border-gold bg-gold/5' : 'border-navy/10'}`}>
                 <div className="relative w-14 h-9 rounded-lg bg-navy overflow-hidden flex-shrink-0">
                   <div className="absolute inset-0 hex-pattern opacity-30" />
                   <div className="absolute bottom-1.5 left-2 text-[9px] text-white font-bold">{c.brand}</div>
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-navy text-sm">{c.brand} •••• {c.last4}</div>
-                  <div className="text-xs text-navy/45">Expires {c.exp}</div>
-                  {c.primary && <span className="text-[10px] text-amber-700 font-semibold">Default</span>}
+                  <div className="text-xs text-navy/45">
+                    Expires {c.expiryMonth?.toString().padStart(2, '0')} / {c.expiryYear?.toString().slice(-2)}
+                  </div>
+                  {c.isDefault && <span className="text-[10px] text-amber-700 font-semibold">Default</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  {!c.primary && (
+                  {!c.isDefault && (
                     <button type="button" onClick={() => makePrimary(c.id)} className="text-xs border border-navy/12 text-navy/50 hover:text-navy rounded-lg px-2.5 py-1.5 transition">
                       Set default
                     </button>
@@ -189,10 +237,10 @@ export default function DashCards() {
           <WalletRow
             logo="/applepay.png"
             alt="Apple Pay"
-            bg="bg-white"
+            bg="bg-black"
             name="Apple Pay"
             subtitle="Tap to pay with Face ID or Touch ID"
-            connected={wallets.apple}
+            connected={!!appleWallet}
             busy={false}
             onConnect={connectApplePay}
             onDisconnect={disconnectApplePay}
@@ -204,7 +252,7 @@ export default function DashCards() {
             bg="bg-white"
             name="Google Pay"
             subtitle={gpayReady ? 'Pay with your Google account' : 'Not available on this browser'}
-            connected={wallets.google}
+            connected={!!googleWallet}
             busy={gpayBusy}
             onConnect={connectGooglePay}
             onDisconnect={disconnectGooglePay}

@@ -1,49 +1,73 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Icons from '@/components/icons';
-import { useDash } from '@/lib/dash-store';
 import { useDashCtx } from '@/lib/dash-context';
 import { getPlan } from '@/lib/auth';
 import { ADDRESS_LIMIT } from '@/lib/plans';
 import { Card, CardTitle, Field } from './DashUI';
+import { api } from '@/lib/api';
 
 export default function DashAddresses() {
-  const { notify } = useDashCtx();
-  const [d, up] = useDash();
-  const [adding, setAdding] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ label: '', line: '', note: '' });
+  const { notify }           = useDashCtx();
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading]     = useState(true);
+  const [adding, setAdding]       = useState(false);
+  const [editId, setEditId]       = useState(null);
+  const [form, setForm]           = useState({ label: '', line: '', note: '' });
 
-  const planId = getPlan() || 'family';
+  const planId = getPlan() || 'individual';
   const limit  = ADDRESS_LIMIT[planId] ?? 5;
-  const canAdd = d.addresses.length < limit;
+  const canAdd = addresses.length < limit;
+
+  useEffect(() => {
+    api.addresses.list()
+      .then(setAddresses)
+      .catch(() => setAddresses([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const setF = (k) => (e) => setForm((s) => ({ ...s, [k]: e.target.value }));
 
-  const save = (e) => {
+  const save = async (e) => {
     e.preventDefault();
     if (!form.label || !form.line) return;
-    if (editId) {
-      up((s) => ({ ...s, addresses: s.addresses.map((a) => a.id === editId ? { ...a, ...form } : a) }));
-      notify('Address updated.');
-    } else {
-      up((s) => ({ ...s, addresses: [...s.addresses, { id: 'a' + Date.now(), ...form, primary: false }] }));
-      notify('Address saved.');
+    try {
+      if (editId) {
+        const updated = await api.addresses.update(editId, form);
+        setAddresses((s) => s.map((a) => a.id === editId ? updated : a));
+        notify('Address updated.');
+      } else {
+        const created = await api.addresses.create(form);
+        setAddresses((s) => [...s, created]);
+        notify('Address saved.');
+      }
+      setAdding(false);
+      setEditId(null);
+      setForm({ label: '', line: '', note: '' });
+    } catch (err) {
+      notify(err.message);
     }
-    setAdding(false);
-    setEditId(null);
-    setForm({ label: '', line: '', note: '' });
   };
 
-  const remove = (id) => {
-    up((s) => ({ ...s, addresses: s.addresses.filter((a) => a.id !== id) }));
-    notify('Address removed.');
+  const remove = async (id) => {
+    try {
+      await api.addresses.remove(id);
+      setAddresses((s) => s.filter((a) => a.id !== id));
+      notify('Address removed.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
 
-  const makePrimary = (id) => {
-    up((s) => ({ ...s, addresses: s.addresses.map((a) => ({ ...a, primary: a.id === id })) }));
-    notify('Default address updated.');
+  const makePrimary = async (id) => {
+    try {
+      await api.addresses.setPrimary(id);
+      setAddresses((s) => s.map((a) => ({ ...a, isPrimary: a.id === id })));
+      notify('Default address updated.');
+    } catch (err) {
+      notify(err.message);
+    }
   };
 
   const startEdit = (a) => {
@@ -59,7 +83,7 @@ export default function DashAddresses() {
       <div className="flex items-center justify-between">
         <h1 className="font-display font-bold text-navy text-2xl">Saved Addresses</h1>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-navy/40">{d.addresses.length}/{limit}</span>
+          <span className="text-xs text-navy/40">{addresses.length}/{limit}</span>
           {canAdd && (
             <button
               onClick={() => { setAdding(!adding); setEditId(null); setForm({ label: '', line: '', note: '' }); }}
@@ -109,14 +133,16 @@ export default function DashAddresses() {
       )}
 
       <Card>
-        {d.addresses.length === 0 ? (
+        {loading ? (
+          <div className="py-10 text-center text-navy/40 text-sm">Loading…</div>
+        ) : addresses.length === 0 ? (
           <div className="py-10 text-center">
             <Icons.Pin size={32} stroke={1.5} className="text-navy/20 mx-auto mb-3" />
             <div className="text-navy/50 text-sm">No saved addresses</div>
           </div>
         ) : (
           <div className="divide-y divide-navy/6">
-            {d.addresses.map((a) => (
+            {addresses.map((a) => (
               <div key={a.id} className="py-4 first:pt-0 last:pb-0 flex items-start gap-3">
                 <div className="grid place-items-center w-9 h-9 rounded-xl bg-navy/5 text-navy flex-shrink-0 mt-0.5">
                   <Icons.Pin size={18} stroke={1.8} />
@@ -124,7 +150,7 @@ export default function DashAddresses() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-navy text-sm">{a.label}</span>
-                    {a.primary && (
+                    {a.isPrimary && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/15 text-amber-700 font-semibold">Default</span>
                     )}
                   </div>
@@ -132,7 +158,7 @@ export default function DashAddresses() {
                   {a.note && <div className="text-xs text-navy/35 mt-0.5 italic">{a.note}</div>}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {!a.primary && (
+                  {!a.isPrimary && (
                     <button type="button" onClick={() => makePrimary(a.id)} className="text-xs text-navy/40 hover:text-navy transition border border-navy/12 rounded-lg px-2.5 py-1.5">
                       Set default
                     </button>

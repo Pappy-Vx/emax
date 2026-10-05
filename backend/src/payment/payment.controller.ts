@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { ProcessPaymentDto } from './dto/process-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -10,13 +10,15 @@ import { User } from '../users/entities/user.entity';
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
-  /**
-   * POST /api/v1/payment/process
-   * Accepts card, Google Pay, or Apple Pay. Validates the plan and
-   * routes to the appropriate payment handler. Updates the user's plan on success.
-   */
+  /** POST /api/v1/payment/process */
   @Post('process')
   process(@CurrentUser() user: User, @Body() dto: ProcessPaymentDto) {
     return this.paymentService.processPayment(user.id, dto);
+  }
+
+  /** GET /api/v1/payment/history — payment receipts for the current user */
+  @Get('history')
+  history(@CurrentUser() user: User) {
+    return this.paymentService.getHistory(user.id);
   }
 }

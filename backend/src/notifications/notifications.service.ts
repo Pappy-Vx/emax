@@ -27,7 +27,7 @@ export class NotificationsService {
     const since = new Date();
     since.setDate(since.getDate() - days);
     return this.repo.find({
-      where:  { userId, createdAt: MoreThan(since) },
+      where:  { userId, isDeleted: false, createdAt: MoreThan(since) },
       order:  { createdAt: 'DESC' },
       select: ['id', 'type', 'channel', 'status', 'title', 'body', 'metadata',
                'sentAt', 'readAt', 'createdAt'],
@@ -35,7 +35,7 @@ export class NotificationsService {
   }
 
   async markRead(id: string, userId: string): Promise<Notification> {
-    const notif = await this.repo.findOneBy({ id });
+    const notif = await this.repo.findOneBy({ id, isDeleted: false });
     if (!notif)              throw new NotFoundException('Notification not found.');
     if (notif.userId !== userId) throw new ForbiddenException();
     if (!notif.readAt) {

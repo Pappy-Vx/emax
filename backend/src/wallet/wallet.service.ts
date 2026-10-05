@@ -25,13 +25,13 @@ export class WalletService {
   ) {}
 
   async findForUser(userId: string): Promise<Wallet[]> {
-    return this.repo.find({ where: { userId }, order: { isDefault: 'DESC', createdAt: 'ASC' } });
+    return this.repo.find({ where: { userId, isDeleted: false }, order: { isDefault: 'DESC', createdAt: 'ASC' } });
   }
 
   async save(userId: string, dto: SaveWalletDto): Promise<Wallet> {
     const email = await this.emailOf(userId);
     const last4Condition = dto.last4 ? { last4: dto.last4 } : { last4: IsNull() };
-    const existing = await this.repo.findOneBy({ userId, type: dto.type, ...last4Condition });
+    const existing = await this.repo.findOneBy({ userId, type: dto.type, isDeleted: false, ...last4Condition });
     if (existing) {
       this.logger.log(`[${email}] wallet save skipped — ${dto.type} ****${dto.last4 ?? 'N/A'} already exists`);
       return existing;
@@ -56,7 +56,7 @@ export class WalletService {
 
   async setDefault(id: string, userId: string): Promise<Wallet> {
     const email  = await this.emailOf(userId);
-    const wallet = await this.repo.findOneBy({ id, userId });
+    const wallet = await this.repo.findOneBy({ id, userId, isDeleted: false });
     if (!wallet) {
       this.logger.warn(`[${email}] setDefault failed — wallet ${id} not found`);
       throw new NotFoundException('Payment method not found.');
@@ -65,21 +65,21 @@ export class WalletService {
     await this.repo.update({ userId }, { isDefault: false });
     await this.repo.update(id, { isDefault: true });
     this.logger.log(`[${email}] default payment method set — ${wallet.type} ****${wallet.last4 ?? 'N/A'}`);
-    return this.repo.findOneByOrFail({ id });
+    return this.repo.findOneByOrFail({ id, isDeleted: false });
   }
 
   async remove(id: string, userId: string): Promise<void> {
     const email  = await this.emailOf(userId);
-    const wallet = await this.repo.findOneBy({ id, userId });
+    const wallet = await this.repo.findOneBy({ id, userId, isDeleted: false });
     if (!wallet) {
       this.logger.warn(`[${email}] remove failed — wallet ${id} not found`);
       throw new NotFoundException('Payment method not found.');
     }
-    await this.repo.remove(wallet);
-    this.logger.log(`[${email}] wallet removed — ${wallet.type} ****${wallet.last4 ?? 'N/A'}`);
+    await this.repo.update(id, { isDeleted: true });
+    this.logger.log(`[${email}] wallet soft-deleted — ${wallet.type} ****${wallet.last4 ?? 'N/A'}`);
 
     if (wallet.isDefault) {
-      const next = await this.repo.findOne({ where: { userId }, order: { createdAt: 'ASC' } });
+      const next = await this.repo.findOne({ where: { userId, isDeleted: false }, order: { createdAt: 'ASC' } });
       if (next) {
         await this.repo.update(next.id, { isDefault: true });
         this.logger.log(`[${email}] new default promoted — ${next.type} ****${next.last4 ?? 'N/A'}`);

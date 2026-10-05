@@ -1,7 +1,7 @@
-import { Controller, Get, Delete, Patch, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Param, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { WalletService } from './wallet.service';
+import { WalletService, SaveWalletDto } from './wallet.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('wallet')
@@ -12,6 +12,12 @@ export class WalletController {
   @Get()
   list(@CurrentUser() user: { id: string }) {
     return this.walletService.findForUser(user.id);
+  }
+
+  /** POST /wallet — save a new payment method (card, google_pay, apple_pay) */
+  @Post()
+  save(@CurrentUser() user: { id: string }, @Body() dto: SaveWalletDto) {
+    return this.walletService.save(user.id, dto);
   }
 
   /** PATCH /wallet/:id/default — set as default payment method */

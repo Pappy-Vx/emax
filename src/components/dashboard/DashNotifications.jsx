@@ -1,8 +1,10 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Icons from '@/components/icons';
 import { useDash } from '@/lib/dash-store';
 import { useDashCtx } from '@/lib/dash-context';
 import { Card, CardTitle, Toggle } from './DashUI';
+import { api } from '@/lib/api';
 
 const PREF_LABELS = {
   sms:       { label: 'Text messages', desc: 'Status updates via SMS' },
@@ -15,16 +17,47 @@ const PREF_LABELS = {
 
 const KIND_ICON = { errand: 'List', billing: 'Briefcase', reward: 'Sparkle' };
 
+function relativeTime(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2)  return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs} hr ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
+function kindOf(type = '') {
+  const t = type.toLowerCase();
+  if (t.includes('payment') || t.includes('plan') || t.includes('subscription')) return 'billing';
+  if (t.includes('reward') || t.includes('point') || t.includes('hive'))         return 'reward';
+  return 'errand';
+}
+
 export default function DashNotifications() {
   const { notify } = useDashCtx();
-  const [d, up] = useDash();
+  const [d, up]              = useDash();
+  const [notifs, setNotifs]  = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const markRead = (id) => {
-    up((s) => ({ ...s, notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n) }));
+  useEffect(() => {
+    api.notifications.me()
+      .then(setNotifs)
+      .catch(() => setNotifs([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const markRead = async (id) => {
+    setNotifs((s) => s.map((n) => n.id === id ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n));
+    api.notifications.markRead(id).catch(() => {});
   };
 
   const markAll = () => {
-    up((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+    const now = new Date().toISOString();
+    setNotifs((s) => s.map((n) => ({ ...n, readAt: n.readAt ?? now })));
+    notifs.filter((n) => !n.readAt).forEach((n) => api.notifications.markRead(n.id).catch(() => {}));
     notify('All notifications marked as read.');
   };
 
@@ -32,7 +65,7 @@ export default function DashNotifications() {
     up((s) => ({ ...s, prefs: { ...s.prefs, [key]: !s.prefs[key] } }));
   };
 
-  const unreadCount = d.notifications.filter((n) => !n.read).length;
+  const unreadCount = notifs.filter((n) => !n.readAt).length;
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -55,31 +88,35 @@ export default function DashNotifications() {
           )}
         </CardTitle>
 
-        {d.notifications.length === 0 ? (
+        {loading ? (
+          <div className="py-10 text-center text-navy/40 text-sm">Loading…</div>
+        ) : notifs.length === 0 ? (
           <div className="py-10 text-center">
             <Icons.Bell size={32} stroke={1.5} className="text-navy/20 mx-auto mb-3" />
-            <div className="text-navy/50 text-sm">No notifications</div>
+            <div className="text-navy/50 text-sm">No notifications yet</div>
           </div>
         ) : (
           <div className="divide-y divide-navy/6">
-            {d.notifications.map((n) => {
-              const iconKey = KIND_ICON[n.kind] || 'Bell';
-              const I = Icons[iconKey] || Icons.Bell;
+            {notifs.map((n) => {
+              const kind    = kindOf(n.type);
+              const iconKey = KIND_ICON[kind] || 'Bell';
+              const I       = Icons[iconKey] || Icons.Bell;
+              const isRead  = !!n.readAt;
               return (
                 <div
                   key={n.id}
                   onClick={() => markRead(n.id)}
-                  className={`py-4 first:pt-0 last:pb-0 flex items-start gap-3 cursor-pointer transition hover:bg-navy/2 rounded-xl px-1 ${n.read ? '' : 'bg-gold/3'}`}
+                  className={`py-4 first:pt-0 last:pb-0 flex items-start gap-3 cursor-pointer transition hover:bg-navy/2 rounded-xl px-1 ${isRead ? '' : 'bg-gold/3'}`}
                 >
-                  <div className={`grid place-items-center w-9 h-9 rounded-xl flex-shrink-0 ${n.read ? 'bg-navy/5 text-navy/40' : 'bg-gold/15 text-amber-700'}`}>
+                  <div className={`grid place-items-center w-9 h-9 rounded-xl flex-shrink-0 ${isRead ? 'bg-navy/5 text-navy/40' : 'bg-gold/15 text-amber-700'}`}>
                     <I size={16} stroke={1.8} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm ${n.read ? 'text-navy/70' : 'font-semibold text-navy'}`}>{n.title}</div>
+                    <div className={`text-sm ${isRead ? 'text-navy/70' : 'font-semibold text-navy'}`}>{n.title}</div>
                     <div className="text-xs text-navy/50 mt-0.5">{n.body}</div>
-                    <div className="text-xs text-navy/30 mt-1">{n.time}</div>
+                    <div className="text-xs text-navy/30 mt-1">{relativeTime(n.createdAt)}</div>
                   </div>
-                  {!n.read && (
+                  {!isRead && (
                     <div className="w-2 h-2 rounded-full bg-gold flex-shrink-0 mt-2" />
                   )}
                 </div>

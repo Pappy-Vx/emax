@@ -19,7 +19,7 @@ export class AddressesService {
 
   async findForUser(userId: string): Promise<Address[]> {
     return this.repo.find({
-      where: { userId },
+      where: { userId, isDeleted: false },
       order: { isPrimary: 'DESC', createdAt: 'ASC' },
     });
   }
@@ -32,7 +32,7 @@ export class AddressesService {
     }
 
     const planLimit = ADDRESS_LIMIT[user.planId] ?? 2;
-    const current = await this.repo.count({ where: { userId } });
+    const current = await this.repo.count({ where: { userId, isDeleted: false } });
 
     if (current >= planLimit) {
       throw new BadRequestException(
@@ -64,18 +64,18 @@ export class AddressesService {
 
   async remove(id: string, userId: string): Promise<void> {
     const address = await this.findOne(id, userId);
-    await this.repo.remove(address);
+    await this.repo.update(address.id, { isDeleted: true });
   }
 
   async setPrimary(id: string, userId: string): Promise<Address> {
     await this.findOne(id, userId);
-    await this.repo.update({ userId }, { isPrimary: false });
+    await this.repo.update({ userId, isDeleted: false }, { isPrimary: false });
     await this.repo.update({ id, userId }, { isPrimary: true });
     return this.findOne(id, userId);
   }
 
   private async findOne(id: string, userId: string): Promise<Address> {
-    const address = await this.repo.findOneBy({ id });
+    const address = await this.repo.findOneBy({ id, isDeleted: false });
     if (!address) throw new NotFoundException('Address not found.');
     if (address.userId !== userId) throw new ForbiddenException();
     return address;

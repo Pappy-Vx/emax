@@ -138,6 +138,9 @@ export const api = {
     /** POST /payment/process */
     process: (dto) =>
       apiFetch('/payment/process', { method: 'POST', body: dto, auth: true }),
+
+    /** GET /payment/history */
+    history: () => apiFetch('/payment/history', { auth: true }),
   },
 
   subscription: {
@@ -164,6 +167,9 @@ export const api = {
     /** GET /wallet */
     list: () => apiFetch('/wallet', { auth: true }),
 
+    /** POST /wallet — save a card, google_pay, or apple_pay */
+    save: (dto) => apiFetch('/wallet', { method: 'POST', body: dto, auth: true }),
+
     /** PATCH /wallet/:id/default */
     setDefault: (id) => apiFetch(`/wallet/${id}/default`, { method: 'PATCH', auth: true }),
 
@@ -174,6 +180,14 @@ export const api = {
   plans: {
     /** GET /plans — public, no auth required */
     list: () => apiFetch('/plans'),
+  },
+
+  notifications: {
+    /** GET /notifications/me?days=N */
+    me: (days = 30) => apiFetch(`/notifications/me?days=${days}`, { auth: true }),
+
+    /** PATCH /notifications/:id/read */
+    markRead: (id) => apiFetch(`/notifications/${id}/read`, { method: 'PATCH', auth: true }),
   },
 
   flags: {
