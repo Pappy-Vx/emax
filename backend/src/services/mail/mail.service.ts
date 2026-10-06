@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import * as sgMail from '@sendgrid/mail';
 
 interface MailOptions {
   to: string;
@@ -11,10 +12,6 @@ interface MailOptions {
 @Injectable()
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
-
-  // Production: Resend HTTP API
-  private resendApiKey!: string;
-  private prodFrom!: string;
 
   // Development: Ethereal SMTP
   private devTransporter!: nodemailer.Transporter;
@@ -28,17 +25,15 @@ export class MailService implements OnModuleInit {
 
   async onModuleInit() {
     if (this.isProd) {
-      this.resendApiKey = this.cfg.get<string>('RESEND_API_KEY') ?? '';
-      const senderEmail =
-        this.cfg.get<string>('RESEND_SENDER_EMAIL') ?? 'noreply@emaxerrands.com';
-      this.prodFrom = `eMax Errands & More <${senderEmail}>`;
-
-      if (!this.resendApiKey) {
-        this.logger.error('RESEND_API_KEY not set — emails will not send in production.');
+      const apiKey = this.cfg.get<string>('SENDGRID_API_KEY') ?? '';
+      if (!apiKey) {
+        this.logger.error('SENDGRID_API_KEY not set — emails will not send in production.');
+      } else {
+        sgMail.setApiKey(apiKey);
+        const from = this.cfg.get<string>('SENDGRID_FROM_EMAIL') ?? 'emaxerrands@gmail.com';
+        this.logger.log(`Mail: SendGrid (from=${from})`);
       }
-      this.logger.log(`Mail: Resend HTTP API (from=${senderEmail})`);
     } else {
-      // Ethereal captures emails locally — open the preview URL to read the OTP
       const account = await nodemailer.createTestAccount();
       this.devFrom = `"eMax Dev" <${account.user}>`;
       this.devTransporter = nodemailer.createTransport({
@@ -55,42 +50,17 @@ export class MailService implements OnModuleInit {
   async send(opts: MailOptions): Promise<void> {
     try {
       if (this.isProd) {
-        await this.sendViaResend(opts);
+        const from = this.cfg.get<string>('SENDGRID_FROM_EMAIL') ?? 'emaxerrands@gmail.com';
+        await sgMail.send({ from, to: opts.to, subject: opts.subject, html: opts.html });
         this.logger.log(`Email sent to ${opts.to}: "${opts.subject}"`);
       } else {
         const info = await this.devTransporter.sendMail({ from: this.devFrom, ...opts });
         const url = nodemailer.getTestMessageUrl(info);
-        // ── Open this URL to read the email (OTP code is inside) ──
         this.logger.log(`📬 Email preview → ${url}`);
       }
     } catch (err) {
       this.logger.error(`Failed to send email to ${opts.to}: ${(err as Error).message}`);
       throw err;
-    }
-  }
-
-  private async sendViaResend(opts: MailOptions): Promise<void> {
-    if (!this.resendApiKey) {
-      throw new Error('RESEND_API_KEY is not configured.');
-    }
-
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.resendApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: this.prodFrom,
-        to: [opts.to],
-        subject: opts.subject,
-        html: opts.html,
-      }),
-    });
-
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-      throw new Error(`Resend API ${res.status}: ${(body.message as string) ?? res.statusText}`);
     }
   }
 

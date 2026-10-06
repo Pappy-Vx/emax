@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import Icons from '@/components/icons';
 import { useDash } from '@/lib/dash-store';
 import { useDashCtx } from '@/lib/dash-context';
-import { getUser, setUser, logout } from '@/lib/auth';
+import { getUser, saveSession, logout } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { Card, CardTitle, Toggle, Field } from './DashUI';
 
 export default function DashSettings() {
@@ -14,33 +15,30 @@ export default function DashSettings() {
   const user = getUser();
 
   const [profile, setProfile] = useState({
-    name:      user?.name  || '',
-    email:     user?.email || '',
-    phone:     d.profile?.phone     || '',
+    phone:     user?.phone     || '',
     caregiver: d.profile?.caregiver || '',
     notes:     d.profile?.notes     || '',
   });
   const [confirm, setConfirm] = useState(false);
+  const [saveErr, setSaveErr] = useState('');
 
   const setP = (k) => (e) => setProfile((s) => ({ ...s, [k]: e.target.value }));
 
-  const saveProfile = (e) => {
+  const saveProfile = async (e) => {
     e.preventDefault();
-    setUser({ ...user, name: profile.name, email: profile.email });
-    up((s) => ({ ...s, profile: { phone: profile.phone, caregiver: profile.caregiver, notes: profile.notes } }));
-    notify('Profile saved!');
+    setSaveErr('');
+    try {
+      const updated = await api.users.updateProfile({ phone: profile.phone });
+      saveSession({ ...getUser(), ...updated });
+      up((s) => ({ ...s, profile: { ...s.profile, caregiver: profile.caregiver, notes: profile.notes } }));
+      notify('Profile saved!');
+    } catch (err) {
+      setSaveErr(err.message);
+    }
   };
 
-  const handleLogout = () => {
-    logout();
-    router.replace('/');
-  };
-
-  const handleDelete = () => {
-    logout();
-    notify('Account deleted.');
-    router.replace('/');
-  };
+  const handleLogout = () => { logout(); router.replace('/'); };
+  const handleDelete = () => { logout(); notify('Account deleted.'); router.replace('/'); };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -52,10 +50,10 @@ export default function DashSettings() {
         <form onSubmit={saveProfile} className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Full name">
-              <input type="text" value={profile.name} onChange={setP('name')} className="field" required />
+              <div className="field bg-stone/60 text-navy/50 cursor-not-allowed">{user?.name || '—'}</div>
             </Field>
             <Field label="Email">
-              <input type="email" value={profile.email} onChange={setP('email')} className="field" required />
+              <div className="field bg-stone/60 text-navy/50 cursor-not-allowed">{user?.email || '—'}</div>
             </Field>
           </div>
           <Field label="Phone">
@@ -67,6 +65,11 @@ export default function DashSettings() {
           <Field label="Delivery notes (for all errands)">
             <textarea value={profile.notes} onChange={setP('notes')} rows={3} className="field resize-none" placeholder="E.g. Please text before arriving." />
           </Field>
+          {saveErr && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              {saveErr}
+            </div>
+          )}
           <button type="submit" className="px-6 py-2.5 rounded-xl bg-gold text-navy text-sm font-semibold hover:bg-gold-deep transition">
             Save changes
           </button>

@@ -304,11 +304,21 @@ export class SubscriptionService {
   }
 
   private calculateProration(sub: Subscription): number {
-    const now     = new Date();
-    const msLeft  = sub.currentPeriodEnd.getTime() - now.getTime();
-    const daysLeft = Math.max(0, msLeft / (1000 * 60 * 60 * 24));
-    const totalDays = sub.billingCycle === BillingCycle.YEARLY ? 365 : 30;
-    const dailyRate = sub.amountCents / totalDays;
-    return Math.round(daysLeft * dailyRate);
+    const now          = new Date();
+    const periodStart  = sub.currentPeriodStart.getTime();
+    const periodEnd    = sub.currentPeriodEnd.getTime();
+    const totalMs      = periodEnd - periodStart;
+    const remainingMs  = Math.max(0, periodEnd - now.getTime());
+
+    if (totalMs <= 0) return 0;
+
+    // Always base the credit on the full published plan price, not the discounted
+    // amountCents stored on the subscription (which may reflect a prior proration).
+    const plan = PLAN_MAP.get(sub.planId);
+    const fullPriceCents = sub.billingCycle === BillingCycle.YEARLY
+      ? (plan?.yearlyPrice ?? 0) * 100
+      : (plan?.price ?? 0) * 100;
+
+    return Math.round((remainingMs / totalMs) * fullPriceCents);
   }
 }
