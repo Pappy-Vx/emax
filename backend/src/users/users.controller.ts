@@ -5,6 +5,7 @@ import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Update2faDto } from './dto/update-2fa.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User } from './entities/user.entity';
 
 @Controller('users')
@@ -28,5 +29,11 @@ export class UsersController {
   @Patch('me/2fa')
   toggle2fa(@CurrentUser() user: User, @Body() dto: Update2faDto) {
     return this.usersService.update2fa(user.id, dto.twoFaEnabled);
+  }
+
+  /** PATCH /api/v1/users/me/profile — update phone number */
+  @Patch('me/profile')
+  updateProfile(@CurrentUser() user: User, @Body() dto: UpdateProfileDto) {
+    return this.usersService.updateProfile(user.id, dto);
   }
 }

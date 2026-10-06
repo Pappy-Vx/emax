@@ -237,7 +237,7 @@ export default function DashCards() {
           <WalletRow
             logo="/applepay.png"
             alt="Apple Pay"
-            bg="bg-black"
+            bg="bg-white"
             name="Apple Pay"
             subtitle="Tap to pay with Face ID or Touch ID"
             connected={!!appleWallet}

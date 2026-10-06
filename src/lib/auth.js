@@ -14,6 +14,11 @@ export const setSelectedPlan = (id) => saveStore({ selectedPlan: id });
 
 export const logout = () => saveStore({ user: null, plan: null, token: null });
 
+// ── Session aliases (used by DashAccount and other dashboard components) ─
+export const getSession   = () => loadStore().user ?? null;
+export const saveSession  = (u) => { saveStore({ user: u }); if (u?.planId) saveStore({ plan: u.planId }); };
+export const clearSession = () => logout();
+
 /**
  * Persist a successful auth response from the backend.
  * Works for both email/OTP login and Google OAuth.

@@ -36,8 +36,8 @@ export class Wallet extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   expiryYear: number | null;
 
-  // Stripe saved payment method id (for future charging without re-entry)
-  @Column({ type: 'varchar', nullable: true })
+  // Stripe payment method ID or raw wallet token (Google Pay tokens are large JSON blobs)
+  @Column({ type: 'text', nullable: true })
   stripePaymentMethodId: string | null;
 
   @Column({ type: 'tinyint', default: false })

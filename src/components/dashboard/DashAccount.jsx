@@ -4,30 +4,38 @@ import { useRouter } from 'next/navigation';
 import { getSession, saveSession, clearSession } from '@/lib/auth';
 import Icons from '@/components/icons';
 import { GoldButton, TEL } from '@/components/shared';
+import { api } from '@/lib/api';
 
 export default function DashAccount() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '' });
+  const [form, setForm] = useState({ phone: '' });
   const [saved, setSaved] = useState(false);
+  const [saveErr, setSaveErr] = useState('');
   const [prefs, setPrefs] = useState({ sms: true, email: false, weeklyDigest: false });
 
   useEffect(() => {
     const s = getSession();
     if (!s) { router.replace('/login'); return; }
     setUser(s);
-    setForm({ name: s.name, email: s.email, phone: s.phone ?? '' });
+    setForm({ phone: s.phone ?? '' });
     if (s.prefs) setPrefs(s.prefs);
   }, [router]);
 
-  const handleSave = () => {
-    const updated = { ...user, ...form, prefs };
-    saveSession(updated);
-    setUser(updated);
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    setSaveErr('');
+    try {
+      const updated = await api.users.updateProfile({ phone: form.phone });
+      const session = { ...getSession(), ...updated };
+      saveSession(session);
+      setUser(session);
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setSaveErr(err.message);
+    }
   };
 
   const handleTogglePref = (key) => {
@@ -83,20 +91,11 @@ export default function DashAccount() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-navy mb-1.5">Full name</label>
-                <input
-                  className="field"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                />
+                <div className="field bg-stone/60 text-navy/50 cursor-not-allowed">{user.name}</div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-navy mb-1.5">Email address</label>
-                <input
-                  type="email"
-                  className="field"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                />
+                <div className="field bg-stone/60 text-navy/50 cursor-not-allowed">{user.email}</div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-navy mb-1.5">Phone number</label>
@@ -108,13 +107,18 @@ export default function DashAccount() {
                   onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                 />
               </div>
+              {saveErr && (
+                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  {saveErr}
+                </div>
+              )}
               <div className="flex gap-3 pt-2">
                 <GoldButton as="button" onClick={handleSave} size="sm">
                   <Icons.Check size={15} stroke={2.5} />
                   Save changes
                 </GoldButton>
                 <button
-                  onClick={() => setEditing(false)}
+                  onClick={() => { setEditing(false); setSaveErr(''); }}
                   className="px-4 py-2.5 text-sm font-semibold text-navy/60 hover:text-navy transition"
                 >
                   Cancel
@@ -144,7 +148,7 @@ export default function DashAccount() {
           {saved && (
             <div className="mt-4 flex items-center gap-2 text-emerald-600 text-[13px] font-semibold">
               <Icons.Check size={15} stroke={2.5} />
-              Changes saved
+              Phone number saved
             </div>
           )}
         </div>

@@ -95,6 +95,10 @@ export const api = {
     /** PATCH /users/me/2fa */
     toggle2fa: (enabled) =>
       apiFetch('/users/me/2fa', { method: 'PATCH', body: { twoFaEnabled: enabled }, auth: true }),
+
+    /** PATCH /users/me/profile — update phone only */
+    updateProfile: (dto) =>
+      apiFetch('/users/me/profile', { method: 'PATCH', body: dto, auth: true }),
   },
 
   addresses: {

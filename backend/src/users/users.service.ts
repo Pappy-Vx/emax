@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -111,6 +112,13 @@ export class UsersService {
     await this.repo.update(userId, { googleId, isGoogleAuth: true, isVerified: true });
     const user = await this.findById(userId).catch(() => null);
     this.logger.log(`[${user?.email ?? userId}] Google account linked`);
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
+    await this.repo.update(userId, { phone: dto.phone });
+    const user = await this.findById(userId);
+    this.logger.log(`[${user.email}] profile updated`);
+    return user;
   }
 
   async validatePassword(user: User, password: string): Promise<boolean> {

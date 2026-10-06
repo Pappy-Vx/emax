@@ -1,9 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Icons from '@/components/icons';
 import { getUser, logout } from '@/lib/auth';
+import { useInactivityLogout } from '@/lib/use-inactivity-logout';
 import { DashProvider, useDashCtx } from '@/lib/dash-context';
 import { useDash } from '@/lib/dash-store';
 import { RequestModal, NotifDropdown, Toast } from './DashUI';
@@ -38,10 +39,12 @@ function DashShellInner({ children }) {
     setUser(u);
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     router.replace('/');
-  };
+  }, [router]);
+
+  useInactivityLogout(handleLogout);
 
   const unreadCount = d.notifications.filter((n) => !n.read).length;
   const markAllRead = () => up((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
