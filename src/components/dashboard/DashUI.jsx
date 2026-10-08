@@ -191,7 +191,21 @@ export function RequestModal({ open, onClose, onSubmit }) {
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Date">
-              <input name="date" type="date" className="field" required />
+              {(() => {
+                const today = new Date();
+                const min = today.toISOString().slice(0, 10);
+                const max = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10);
+                return (
+                  <input
+                    name="date"
+                    type="date"
+                    className="field"
+                    required
+                    min={min}
+                    max={max}
+                  />
+                );
+              })()}
             </Field>
             <Field label="Time">
               <input name="time" type="time" className="field" required />
