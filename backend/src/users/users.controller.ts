@@ -19,11 +19,10 @@ export class UsersController {
     return user;
   }
 
-  /** PATCH /api/v1/users/me/plan */
-  @Patch('me/plan')
-  updatePlan(@CurrentUser() user: User, @Body('planId') planId: string) {
-    return this.usersService.updatePlan(user.id, planId);
-  }
+  // NOTE: planId is intentionally NOT writable by the user.
+  // It is set exclusively by PaymentService (new subscription) and
+  // SubscriptionService (plan switch). Exposing it here would let any
+  // authenticated user assign themselves the Business plan for free.
 
   /** PATCH /api/v1/users/me/2fa — toggle two-factor authentication */
   @Patch('me/2fa')

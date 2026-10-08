@@ -260,6 +260,15 @@ export default function DashCards() {
         </div>
       </Card>
 
+      {/* Renewal notice */}
+      <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-navy/4 border border-navy/8">
+        <Icons.Bell size={16} stroke={1.8} className="text-navy/40 flex-shrink-0 mt-0.5" />
+        <p className="text-xs text-navy/55 leading-relaxed">
+          We'll send you a friendly reminder a few days before your eMax Errands &amp; More subscription renews,
+          giving you time to decide whether to continue or cancel before your next charge.
+        </p>
+      </div>
+
       {/* Add card form */}
       {adding && (
         <Card>

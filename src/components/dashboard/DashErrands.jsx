@@ -30,7 +30,7 @@ export default function DashErrands() {
 
   useEffect(() => { load(); }, [load]);
 
-  const upcoming = (errands ?? []).filter((e) => ['scheduled', 'confirmed', 'on-the-way'].includes(e.status));
+  const upcoming = (errands ?? []).filter((e) => ['scheduled', 'confirmed', 'picked-up', 'on-the-way'].includes(e.status));
   const past     = (errands ?? []).filter((e) => e.status === 'completed' || e.status === 'cancelled');
   const list     = tab === 'upcoming' ? upcoming : past;
 

@@ -34,18 +34,20 @@ export function Toggle({ on, onToggle }) {
 
 // ── Pill (status badge) ──────────────────────────────────────────
 const PILL_STYLES = {
-  scheduled:  'bg-navy/8 text-navy',
-  confirmed:  'bg-blue-50 text-blue-700',
+  scheduled:    'bg-navy/8 text-navy',
+  confirmed:    'bg-blue-50 text-blue-700',
+  'picked-up':  'bg-purple-50 text-purple-700',
   'on-the-way': 'bg-gold/15 text-amber-700',
-  completed:  'bg-green-50 text-green-700',
-  cancelled:  'bg-red-50 text-red-600',
-  active:     'bg-green-50 text-green-700',
-  paused:     'bg-navy/8 text-navy/60',
-  default:    'bg-navy/8 text-navy',
+  completed:    'bg-green-50 text-green-700',
+  cancelled:    'bg-red-50 text-red-600',
+  active:       'bg-green-50 text-green-700',
+  paused:       'bg-navy/8 text-navy/60',
+  default:      'bg-navy/8 text-navy',
 };
 const PILL_LABELS = {
   scheduled:    'Scheduled',
   confirmed:    'Confirmed',
+  'picked-up':  'Picked up',
   'on-the-way': 'On the way',
   completed:    'Completed',
   cancelled:    'Cancelled',

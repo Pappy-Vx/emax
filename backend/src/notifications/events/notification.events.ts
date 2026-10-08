@@ -22,11 +22,12 @@ export const NOTIFY = {
   PAYMENT_FAILED:    'payment.failed',
   PAYMENT_REFUNDED:  'payment.refunded',
   // Plan / Subscription
-  PLAN_ACTIVATED:              'plan.activated',
-  PLAN_CHANGED:                'plan.changed',
-  SUBSCRIPTION_RENEWED:        'subscription.renewed',
-  SUBSCRIPTION_CANCELLED:      'subscription.cancelled',
-  SUBSCRIPTION_EXPIRING_SOON:  'subscription.expiring_soon',
+  PLAN_ACTIVATED:                 'plan.activated',
+  PLAN_CHANGED:                   'plan.changed',
+  SUBSCRIPTION_RENEWED:           'subscription.renewed',
+  SUBSCRIPTION_CANCELLED:         'subscription.cancelled',
+  SUBSCRIPTION_EXPIRING_SOON:     'subscription.expiring_soon',
+  SUBSCRIPTION_RENEWAL_REMINDER:  'subscription.renewal_reminder',
   // Errands
   ERRAND_CREATED:    'errand.created',
   ERRAND_CONFIRMED:  'errand.confirmed',

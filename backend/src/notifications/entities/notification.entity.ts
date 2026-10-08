@@ -18,7 +18,8 @@ export enum NotificationType {
   PLAN_CHANGED            = 'plan_changed',
   SUBSCRIPTION_RENEWED    = 'subscription_renewed',
   SUBSCRIPTION_CANCELLED  = 'subscription_cancelled',
-  SUBSCRIPTION_EXPIRING_SOON = 'subscription_expiring_soon',
+  SUBSCRIPTION_EXPIRING_SOON     = 'subscription_expiring_soon',
+  SUBSCRIPTION_RENEWAL_REMINDER  = 'subscription_renewal_reminder',
   // Errands
   ERRAND_CREATED   = 'errand_created',
   ERRAND_CONFIRMED = 'errand_confirmed',

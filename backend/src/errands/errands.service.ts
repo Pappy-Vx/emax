@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable, NotFoundException, ForbiddenException, Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Errand } from './entities/errand.entity';
+import { Subscription, SubscriptionStatus, BillingCycle } from '../subscription/entities/subscription.entity';
+import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
 import { CreateErrandDto } from './dto/create-errand.dto';
 import { UsersService } from '../users/users.service';
 import { NOTIFY } from '../notifications/events/notification.events';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { PLAN_MAP } from '../common/constants/plans.constant';
 
 const POINTS_PER_ERRAND = 20;
 
@@ -17,11 +22,17 @@ export class ErrandsService {
   constructor(
     @InjectRepository(Errand)
     private readonly repo: Repository<Errand>,
+    @InjectRepository(Subscription)
+    private readonly subRepo: Repository<Subscription>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
     private readonly usersService: UsersService,
     private readonly events: EventEmitter2,
   ) {}
 
   async create(userId: string, dto: CreateErrandDto): Promise<Errand> {
+    await this.assertCanCreateErrand(userId);
+
     const errand = this.repo.create({
       userId,
       type:               dto.type,
@@ -111,6 +122,7 @@ export class ErrandsService {
     this.logger.log(`[${user.email}] errand status → ${status} (id=${id} type=${errand.type})`);
 
     type StatusMeta = { event: string; type: NotificationType; title: string; body: string };
+    // Keys must match ErrandStatus values exactly (as stored in DB)
     const STATUS_EVENTS: Partial<Record<string, StatusMeta>> = {
       confirmed: {
         event: NOTIFY.ERRAND_CONFIRMED,
@@ -118,7 +130,7 @@ export class ErrandsService {
         title: 'Errand confirmed',
         body:  `Your ${errand.type} errand has been confirmed and an agent is on it.`,
       },
-      picked_up: {
+      'picked-up': {
         event: NOTIFY.ERRAND_PICKED_UP,
         type:  NotificationType.ERRAND_PICKED_UP,
         title: 'Errand picked up',
@@ -144,5 +156,85 @@ export class ErrandsService {
       });
     }
     return updated!;
+  }
+
+  // ── Business rule enforcement ──────────────────────────────────
+
+  /**
+   * Throws ForbiddenException if the user cannot create another errand.
+   * Rules:
+   *  1. Active subscription → check monthly errand usage against plan limit.
+   *  2. No active subscription → check for an unused single_errand payment credit.
+   *  3. Neither → reject.
+   */
+  private async assertCanCreateErrand(userId: string): Promise<void> {
+    const now = new Date();
+
+    const sub = await this.subRepo.findOne({
+      where:  { userId, status: SubscriptionStatus.ACTIVE },
+      order:  { createdAt: 'DESC' },
+    });
+
+    if (sub) {
+      const plan = PLAN_MAP.get(sub.planId);
+      if (!plan || plan.errands <= 0) return; // unlimited plan, allow
+
+      // For yearly billing count only current calendar month so monthly quota isn't
+      // exhausted permanently by a single busy month mid-year.
+      const windowStart = sub.billingCycle === BillingCycle.YEARLY
+        ? new Date(now.getFullYear(), now.getMonth(), 1)
+        : sub.currentPeriodStart;
+
+      const used = await this.repo
+        .createQueryBuilder('e')
+        .where('e.userId = :userId',        { userId })
+        .andWhere('e.status != :cancelled', { cancelled: 'cancelled' })
+        .andWhere('e.createdAt >= :start',  { start: windowStart })
+        .andWhere('e.isDeleted = :del',     { del: false })
+        .getCount();
+
+      if (used >= plan.errands) {
+        throw new ForbiddenException(
+          JSON.stringify({
+            code:    'ERRAND_LIMIT_REACHED',
+            message: `Monthly errand limit reached (${plan.errands}/${plan.errands}). Purchase a single errand or upgrade your plan.`,
+          }),
+        );
+      }
+      return;
+    }
+
+    // No active subscription — look for an unused single_errand credit.
+    const singlePayment = await this.paymentRepo.findOne({
+      where: { userId, planId: 'single_errand', status: PaymentStatus.SUCCEEDED },
+      order: { createdAt: 'DESC' },
+    });
+
+    if (!singlePayment) {
+      throw new ForbiddenException(
+        JSON.stringify({
+          code:    'NO_SUBSCRIPTION',
+          message: 'An active subscription or a single errand purchase is required to create an errand.',
+        }),
+      );
+    }
+
+    // A single_errand credit allows exactly 1 errand after the payment date.
+    const errandsAfterPayment = await this.repo
+      .createQueryBuilder('e')
+      .where('e.userId = :userId',        { userId })
+      .andWhere('e.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere('e.createdAt > :paid',    { paid: singlePayment.createdAt })
+      .andWhere('e.isDeleted = :del',     { del: false })
+      .getCount();
+
+    if (errandsAfterPayment >= 1) {
+      throw new ForbiddenException(
+        JSON.stringify({
+          code:    'SINGLE_ERRAND_USED',
+          message: 'Your single errand credit has already been used. Purchase another or subscribe to a plan.',
+        }),
+      );
+    }
   }
 }

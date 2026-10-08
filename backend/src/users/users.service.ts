@@ -128,6 +128,7 @@ export class UsersService {
 
   private generateReferralCode(name: string): string {
     const prefix = name.split(' ')[0].toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
-    return `EMAX-${prefix}`;
+    const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `EMAX-${prefix}${suffix}`;
   }
 }

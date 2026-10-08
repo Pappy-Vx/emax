@@ -56,4 +56,8 @@ export class Subscription extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: true })
   stripeSubscriptionId: string | null;
+
+  /** Set when the 3-day renewal reminder email is sent; cleared on each renewal so the next cycle gets a fresh reminder. */
+  @Column({ type: 'datetime', nullable: true })
+  renewalReminderSentAt: Date | null;
 }

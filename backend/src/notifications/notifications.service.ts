@@ -143,4 +143,7 @@ export class NotificationsService {
 
   @OnEvent(NOTIFY.SUBSCRIPTION_EXPIRING_SOON)
   handleSubscriptionExpiringSoon(p: NotificationPayload) { return this.send(p); }
+
+  @OnEvent(NOTIFY.SUBSCRIPTION_RENEWAL_REMINDER)
+  handleSubscriptionRenewalReminder(p: NotificationPayload) { return this.send(p); }
 }

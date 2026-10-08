@@ -39,6 +39,17 @@ export class PaymentService {
     // Fetch user upfront so we can store their name in the payment record
     const user = await this.usersService.findById(userId);
 
+    // Guard: existing active subscribers must use the plan-switch flow, not re-purchase.
+    // Exception: single_errand purchases are always allowed on top of any subscription.
+    if (dto.planId !== 'single_errand') {
+      const activeSub = await this.subscriptionService.findActive(userId);
+      if (activeSub) {
+        throw new BadRequestException(
+          'You already have an active subscription. To change plans use the subscription upgrade flow.',
+        );
+      }
+    }
+
     let chargeId = '';
 
     if (dto.paymentMethod === 'card') {

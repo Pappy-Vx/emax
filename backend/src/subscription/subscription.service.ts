@@ -2,7 +2,7 @@ import {
   Injectable, BadRequestException, ForbiddenException, NotFoundException, Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual } from 'typeorm';
+import { Repository, LessThanOrEqual, IsNull } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Subscription, BillingCycle, SubscriptionStatus } from './entities/subscription.entity';
 import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
@@ -265,12 +265,13 @@ export class SubscriptionService {
           metadata:       { planId: sub.planId },
         });
       } else {
-        // Renew: roll the period forward
+        // Renew: roll the period forward and clear the reminder flag for the new cycle
         const newStart = new Date(sub.currentPeriodEnd);
         const newEnd   = this.addPeriod(newStart, sub.billingCycle);
         await this.subRepo.update(sub.id, {
-          currentPeriodStart: newStart,
-          currentPeriodEnd:   newEnd,
+          currentPeriodStart:    newStart,
+          currentPeriodEnd:      newEnd,
+          renewalReminderSentAt: null,
         });
         // TODO: charge via Stripe once integrated
         this.events.emit(NOTIFY.SUBSCRIPTION_RENEWED, {
@@ -285,15 +286,17 @@ export class SubscriptionService {
       }
     }
 
-    // Warn users whose subscription expires in 3 days (and won't auto-renew)
+    // ── Expiry warning (no auto-renew, expires within 3 days) ─────
+    // Uses renewalReminderSentAt to send exactly once per cycle.
     const in3days = new Date();
     in3days.setDate(in3days.getDate() + 3);
 
     const expiringSoon = await this.subRepo.find({
       where: {
-        status:           SubscriptionStatus.ACTIVE,
-        autoRenew:        false,
-        currentPeriodEnd: LessThanOrEqual(in3days),
+        status:                SubscriptionStatus.ACTIVE,
+        autoRenew:             false,
+        currentPeriodEnd:      LessThanOrEqual(in3days),
+        renewalReminderSentAt: IsNull(),
       },
       relations: ['user'],
     });
@@ -307,6 +310,39 @@ export class SubscriptionService {
         body:           `Your ${PLAN_MAP.get(sub.planId)?.name ?? sub.planId} plan expires on ${sub.currentPeriodEnd.toDateString()}. Enable auto-renew or re-subscribe to keep your errands active.`,
         metadata:       { planId: sub.planId, expiresAt: sub.currentPeriodEnd },
       });
+      await this.subRepo.update(sub.id, { renewalReminderSentAt: new Date() });
+    }
+
+    // ── Renewal reminder (auto-renew ON, renews within 3 days) ────
+    // Sends exactly once per cycle — won't fire again until the period rolls over.
+    const renewingSoon = await this.subRepo.find({
+      where: {
+        status:                SubscriptionStatus.ACTIVE,
+        autoRenew:             true,
+        cancelAtPeriodEnd:     false,
+        currentPeriodEnd:      LessThanOrEqual(in3days),
+        renewalReminderSentAt: IsNull(),
+      },
+      relations: ['user'],
+    });
+
+    for (const sub of renewingSoon) {
+      const plan         = PLAN_MAP.get(sub.planId);
+      const planName     = plan?.name ?? sub.planId;
+      const renewalPrice = sub.billingCycle === BillingCycle.YEARLY
+        ? `$${plan?.yearlyPrice.toFixed(2) ?? '—'}/year`
+        : `$${plan?.price.toFixed(2) ?? '—'}/month`;
+
+      this.events.emit(NOTIFY.SUBSCRIPTION_RENEWAL_REMINDER, {
+        userId:         sub.userId,
+        recipientEmail: sub.user.email,
+        type:           NotificationType.SUBSCRIPTION_RENEWAL_REMINDER,
+        title:          `Your ${planName} plan renews in 3 days`,
+        body:           `Just a heads-up — your eMax Errands &amp; More ${planName} subscription (${renewalPrice}) will automatically renew on ${sub.currentPeriodEnd.toDateString()}. If you'd like to cancel before the charge, visit your subscription settings.`,
+        metadata:       { planId: sub.planId, renewsAt: sub.currentPeriodEnd, amountCents: sub.amountCents },
+      });
+      await this.subRepo.update(sub.id, { renewalReminderSentAt: new Date() });
+      this.logger.log(`[${sub.user.email}] renewal reminder sent — ${planName} renews ${sub.currentPeriodEnd.toDateString()}`);
     }
   }
 
@@ -343,12 +379,18 @@ export class SubscriptionService {
     const timeFraction = remainingMs / totalMs;
 
     // ── Errand fraction: how many errands are still unused ───────
-    // Count non-cancelled errands created since this billing period started.
+    // For yearly billing, count only the current calendar month so a user who
+    // used their monthly allowance in January doesn't lose all proration credit
+    // when upgrading in October. Monthly billing uses the full period start.
+    const errandWindowStart = sub.billingCycle === BillingCycle.YEARLY
+      ? new Date(now.getFullYear(), now.getMonth(), 1)
+      : sub.currentPeriodStart;
+
     const errandsUsed = await this.errandRepo
       .createQueryBuilder('e')
       .where('e.userId = :userId',         { userId })
       .andWhere('e.status != :cancelled',  { cancelled: 'cancelled' })
-      .andWhere('e.createdAt >= :start',   { start: sub.currentPeriodStart })
+      .andWhere('e.createdAt >= :start',   { start: errandWindowStart })
       .andWhere('e.isDeleted = :deleted',  { deleted: false })
       .getCount();
 
