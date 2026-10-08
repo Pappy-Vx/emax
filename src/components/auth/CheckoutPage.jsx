@@ -60,13 +60,14 @@ export default function CheckoutPage() {
 
   // When coming from /dashboard/subscription, these are pre-filled
   const switchMode    = params.get('switch') === 'true';
-  const paramPlanId   = params.get('planId');
+  const errandSingle  = params.get('errand') === 'single';
+  const paramPlanId   = errandSingle ? 'single_errand' : params.get('planId');
   const paramCycle    = params.get('billingCycle');
   const paramCredit   = parseInt(params.get('creditCents') ?? '0', 10);
   const paramCharge   = parseInt(params.get('chargeCents') ?? '0', 10);
 
   const [selectedId, setSelectedId_local] = useState(
-    () => paramPlanId || getSelectedPlan() || PLANS[1].id,
+    () => paramPlanId || getSelectedPlan() || PLANS.find(p => p.id === 'family').id,
   );
   const [billingCycle, setBillingCycle] = useState(paramCycle || 'monthly');
   const [payMethod, setPayMethod] = useState('card');
@@ -112,11 +113,9 @@ export default function CheckoutPage() {
   // ── Core charge dispatcher ───────────────────────────────────────
   const processCharge = async (paymentPayload) => {
     if (switchMode) {
-      // Plan switch — call subscription.switch() instead of payment.process()
-      const result = await api.subscription.switch(selectedId, billingCycle);
-      return result;
+      return api.subscription.switch(selectedId, billingCycle);
     }
-    return api.payment.process({ ...paymentPayload, planId: selectedId, billingCycle });
+    return api.payment.process({ ...paymentPayload, planId: selectedId, billingCycle: errandSingle ? 'monthly' : billingCycle });
   };
 
   // ── Card payment ─────────────────────────────────────────────────
@@ -171,9 +170,11 @@ export default function CheckoutPage() {
     return (
       <PaymentResultModal
         type="success"
-        title={switchMode ? 'Plan switched!' : 'You are all set!'}
+        title={errandSingle ? 'Errand unlocked!' : switchMode ? 'Plan switched!' : 'You are all set!'}
         message={
-          switchMode
+          errandSingle
+            ? 'Your single errand has been paid. Heading to your dashboard to schedule it…'
+            : switchMode
             ? `You are now on the ${plan.name} plan (${billingCycle}). Taking you to your dashboard…`
             : `Your ${plan.name} plan is active. Taking you to your dashboard…`
         }
@@ -200,14 +201,14 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="bg-white border-b border-navy/8 px-5 py-4 flex items-center gap-3">
         <Link
-          href={switchMode ? '/dashboard/subscription' : '/pricing'}
+          href={errandSingle ? '/dashboard' : switchMode ? '/dashboard/subscription' : '/pricing'}
           className="flex items-center gap-1 text-navy/55 hover:text-navy text-sm font-medium transition"
         >
           <Icons.ChevLeft size={16} stroke={2} />
-          {switchMode ? 'Subscription' : 'Pricing'}
+          {errandSingle ? 'Dashboard' : switchMode ? 'Subscription' : 'Pricing'}
         </Link>
         <div className="flex-1 text-center font-display font-bold text-navy text-base">
-          {switchMode ? 'Switch plan' : 'Complete your order'}
+          {errandSingle ? 'Buy a single errand' : switchMode ? 'Switch plan' : 'Complete your order'}
         </div>
         <div className="w-16" />
       </div>
@@ -238,7 +239,9 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <div className="font-display font-bold text-navy text-lg">{plan.name}</div>
-                    <div className="text-navy/55 text-sm">{plan.errands} errands/month · {plan.tagline}</div>
+                    <div className="text-navy/55 text-sm">
+                      {errandSingle ? 'One-time charge · No subscription' : `${plan.errands} errands/month · ${plan.tagline}`}
+                    </div>
                   </div>
                 </div>
                 {/* Features */}
@@ -256,10 +259,12 @@ export default function CheckoutPage() {
                     <span className="text-navy/60">{plan.name} plan</span>
                     <span className="font-semibold text-navy">${planPrice(plan.id, billingCycle).toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[14px] pb-3 border-b border-navy/8">
-                    <span className="text-navy/60">Billing</span>
-                    <span className="text-navy capitalize">{billingCycle}</span>
-                  </div>
+                  {!errandSingle && (
+                    <div className="flex items-center justify-between text-[14px] pb-3 border-b border-navy/8">
+                      <span className="text-navy/60">Billing</span>
+                      <span className="text-navy capitalize">{billingCycle}</span>
+                    </div>
+                  )}
                   {billingCycle === 'yearly' && savings > 0 && (
                     <div className="flex items-center justify-between text-[13px] pb-3 border-b border-navy/8 text-green-600 font-semibold">
                       <span>Yearly savings</span>
@@ -276,7 +281,9 @@ export default function CheckoutPage() {
                     <span>Total today</span>
                     <span>${price.toFixed(2)}</span>
                   </div>
-                  <p className="text-xs text-navy/40">Cancel or pause anytime from your dashboard.</p>
+                  <p className="text-xs text-navy/40">
+                    {errandSingle ? 'One-time charge — schedule your errand after payment.' : 'Cancel or pause anytime from your dashboard.'}
+                  </p>
                 </div>
               </div>
             </>
@@ -304,7 +311,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                {PLANS.map((p) => {
+                {PLANS.filter((p) => p.id !== 'single_errand').map((p) => {
                   const PI = ICON_MAP[p.iconKey] || Icons.Briefcase;
                   const active = p.id === selectedId;
                   return (

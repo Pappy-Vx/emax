@@ -7,7 +7,7 @@ import { Transform } from 'class-transformer';
 export class ProcessPaymentDto {
   @IsString()
   @IsNotEmpty({ message: 'Plan ID must not be empty.' })
-  @IsIn(['individual', 'family', 'business'], { message: 'Invalid plan. Choose individual, family, or business.' })
+  @IsIn(['individual', 'family', 'business', 'single_errand'], { message: 'Invalid plan.' })
   planId: string;
 
   @IsString()

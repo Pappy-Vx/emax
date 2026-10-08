@@ -142,7 +142,7 @@ export default function Navbar() {
           {FLAGS.dashboard && (
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-navy border-2 border-gold rounded-full hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-200"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-navy border-2 border-gold rounded-full hover:bg-navy-deep hover:text-white hover:border-navy-deep transition-all duration-200"
             >
               Login
             </Link>
@@ -244,7 +244,7 @@ export default function Navbar() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full border-2 border-gold text-navy text-[15px] font-semibold hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full border-2 border-gold text-navy text-[15px] font-semibold hover:bg-navy-deep hover:text-white hover:border-navy-deep transition-all"
               >
                 Login
               </Link>

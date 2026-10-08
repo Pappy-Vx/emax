@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Subscription, BillingCycle, SubscriptionStatus } from './entities/subscription.entity';
+import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
 import { SwitchPlanDto } from './dto/switch-plan.dto';
 import { PLAN_MAP } from '../common/constants/plans.constant';
 import { UsersService } from '../users/users.service';
@@ -18,6 +19,8 @@ export class SubscriptionService {
   constructor(
     @InjectRepository(Subscription)
     private readonly subRepo: Repository<Subscription>,
+    @InjectRepository(Payment)
+    private readonly paymentRepo: Repository<Payment>,
     private readonly usersService: UsersService,
     private readonly events: EventEmitter2,
   ) {}
@@ -174,6 +177,19 @@ export class SubscriptionService {
 
     // Update user's planId
     await this.usersService.updatePlan(userId, dto.planId);
+
+    // Record the payment for billing history
+    await this.paymentRepo.save(
+      this.paymentRepo.create({
+        userId,
+        userName:      user.name,
+        planId:        dto.planId,
+        paymentMethod: 'card',
+        amountCents:   chargedCents,
+        chargeId:      `ch_switch_${Date.now()}`,
+        status:        PaymentStatus.SUCCEEDED,
+      }),
+    );
 
     this.events.emit(NOTIFY.PLAN_CHANGED, {
       userId,

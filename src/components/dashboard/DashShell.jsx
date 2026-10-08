@@ -29,7 +29,7 @@ const NAV = [
 function DashShellInner({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { requestOpen, setRequestOpen, openRequest, notify } = useDashCtx();
+  const { requestOpen, setRequestOpen, openRequest, notify, errandsLeft } = useDashCtx();
   const [d, up] = useDash();
   const [user, setUser] = useState(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -40,6 +40,11 @@ function DashShellInner({ children }) {
     if (!u) { router.replace('/login'); return; }
     setUser(u);
   }, [router]);
+
+  const handleOpenErrand = useCallback(() => {
+    if (errandsLeft === 0) router.push('/checkout?errand=single');
+    else openRequest();
+  }, [errandsLeft, openRequest, router]);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -150,7 +155,7 @@ function DashShellInner({ children }) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={openRequest}
+              onClick={handleOpenErrand}
               className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold text-navy text-sm font-semibold hover:bg-gold-deep transition"
               type="button"
             >
@@ -262,7 +267,7 @@ function DashShellInner({ children }) {
 
       {/* FAB on mobile */}
       <button
-        onClick={openRequest}
+        onClick={handleOpenErrand}
         className="md:hidden fixed bottom-20 right-4 w-12 h-12 rounded-full bg-gold text-navy shadow-gold flex items-center justify-center z-40"
         type="button"
       >

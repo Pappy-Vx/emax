@@ -10,7 +10,26 @@ export function saveStore(patch) {
   try { localStorage.setItem(STORE, JSON.stringify({ ...loadStore(), ...patch })); } catch {}
 }
 
+export const SINGLE_ERRAND_PRICE = 19.99;
+
 export const PLANS = [
+  {
+    id: 'single_errand',
+    name: 'Single Errand',
+    tagline: 'Pay As You Go',
+    price: SINGLE_ERRAND_PRICE,
+    yearlyPrice: SINGLE_ERRAND_PRICE,
+    rank: 0,
+    errands: 1,
+    for: 'One-off errand beyond your plan limit',
+    iconKey: 'List',
+    features: [
+      '1 errand, scheduled after payment',
+      '$19.99 one-time charge',
+      'Same-day availability',
+      'No subscription required',
+    ],
+  },
   {
     id: 'individual',
     name: 'Individual',

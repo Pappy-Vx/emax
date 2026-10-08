@@ -6,6 +6,7 @@ const Ctx = createContext(null);
 
 export function DashProvider({ children }) {
   const [requestOpen, setRequestOpen] = useState(false);
+  const [errandsLeft, setErrandsLeft] = useState(null); // null = unknown, 0 = exhausted
 
   const notify = useCallback((msg, type = 'success') => {
     if (type === 'error')   return toast.error(msg);
@@ -17,7 +18,7 @@ export function DashProvider({ children }) {
   const openRequest = useCallback(() => setRequestOpen(true), []);
 
   return (
-    <Ctx.Provider value={{ notify, requestOpen, setRequestOpen, openRequest }}>
+    <Ctx.Provider value={{ notify, requestOpen, setRequestOpen, openRequest, errandsLeft, setErrandsLeft }}>
       {children}
     </Ctx.Provider>
   );

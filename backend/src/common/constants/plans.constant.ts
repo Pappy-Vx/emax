@@ -13,6 +13,22 @@ export interface Plan {
 
 export const PLANS: Plan[] = [
   {
+    id: 'single_errand',
+    name: 'Single Errand',
+    price: 19.99,
+    yearlyPrice: 19.99,
+    rank: 0,
+    errands: 1,
+    addressLimit: 0,
+    description: 'Pay-as-you-go — one errand when you need it.',
+    features: [
+      '1 errand, scheduled immediately',
+      '$19.99 one-time charge',
+      'Same-day availability',
+      'No subscription required',
+    ],
+  },
+  {
     id: 'individual',
     name: 'Individual',
     price: 83.99,

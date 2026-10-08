@@ -60,29 +60,30 @@ export class PaymentService {
       }),
     );
 
-    // Activate the plan on the user profile
-    await this.usersService.updatePlan(userId, dto.planId);
+    // Single errand: record payment only — no subscription change
+    if (dto.planId !== 'single_errand') {
+      await this.usersService.updatePlan(userId, dto.planId);
+      await this.subscriptionService.create(userId, dto.planId, billingCycle, amountCents);
 
-    // Create / replace subscription record
-    await this.subscriptionService.create(userId, dto.planId, billingCycle, amountCents);
+      this.events.emit(NOTIFY.PLAN_ACTIVATED, {
+        userId,
+        recipientEmail: user.email,
+        type:           NotificationType.PLAN_ACTIVATED,
+        title:          `${plan.name} plan activated`,
+        body:           `Welcome to your ${plan.name} plan. You now have access to ${plan.errands} errands/month.`,
+        metadata:       { planId: dto.planId },
+      });
+    }
 
-    // Fire-and-forget notification event
     this.events.emit(NOTIFY.PAYMENT_SUCCEEDED, {
       userId,
       recipientEmail: user.email,
       type:           NotificationType.PAYMENT_SUCCEEDED,
-      title:          `Payment confirmed — ${plan.name} plan`,
-      body:           `Your ${plan.name} plan is now active. $${(amountCents / 100).toFixed(2)} was charged via ${dto.paymentMethod.replace('_', ' ')}. Charge ID: ${chargeId}.`,
+      title:          dto.planId === 'single_errand'
+        ? 'Single errand payment confirmed'
+        : `Payment confirmed — ${plan.name} plan`,
+      body:           `$${(amountCents / 100).toFixed(2)} charged via ${dto.paymentMethod.replace('_', ' ')}. Charge ID: ${chargeId}.`,
       metadata:       { planId: dto.planId, chargeId, amountCents, paymentMethod: dto.paymentMethod },
-    });
-
-    this.events.emit(NOTIFY.PLAN_ACTIVATED, {
-      userId,
-      recipientEmail: user.email,
-      type:           NotificationType.PLAN_ACTIVATED,
-      title:          `${plan.name} plan activated`,
-      body:           `Welcome to your ${plan.name} plan. You now have access to ${plan.errands} errands/month.`,
-      metadata:       { planId: dto.planId },
     });
 
     this.logger.log(`[${user.email}] payment succeeded — ${plan.name}/${billingCycle} $${(amountCents / 100).toFixed(2)} via ${dto.paymentMethod} (chargeId=${chargeId})`);

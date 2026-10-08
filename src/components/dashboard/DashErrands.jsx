@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Icons from '@/components/icons';
 import { useDashCtx } from '@/lib/dash-context';
 import { api } from '@/lib/api';
@@ -11,7 +12,13 @@ function fmtDate(iso) {
 }
 
 export default function DashErrands() {
-  const { openRequest, notify } = useDashCtx();
+  const router = useRouter();
+  const { openRequest, notify, errandsLeft } = useDashCtx();
+
+  const handleOpenErrand = () => {
+    if (errandsLeft === 0) router.push('/checkout?errand=single');
+    else openRequest();
+  };
   const [errands, setErrands] = useState(null); // null = loading
   const [tab, setTab] = useState('upcoming');
 
@@ -44,7 +51,7 @@ export default function DashErrands() {
       <div className="flex items-center justify-between">
         <h1 className="font-display font-bold text-navy text-2xl">My Errands</h1>
         <button
-          onClick={openRequest}
+          onClick={handleOpenErrand}
           className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gold text-navy text-sm font-semibold hover:bg-gold-deep transition"
           type="button"
         >
@@ -76,7 +83,7 @@ export default function DashErrands() {
             <div className="text-navy/50 text-sm">No {tab} errands</div>
             {tab === 'upcoming' && (
               <button
-                onClick={openRequest}
+                onClick={handleOpenErrand}
                 className="mt-4 px-5 py-2.5 rounded-full bg-gold text-navy text-sm font-semibold hover:bg-gold-deep transition"
                 type="button"
               >

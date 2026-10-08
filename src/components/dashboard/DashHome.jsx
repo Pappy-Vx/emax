@@ -22,7 +22,7 @@ const HIVE_TIER = 'Busy Bee';
 
 export default function DashHome() {
   const router = useRouter();
-  const { openRequest } = useDashCtx();
+  const { openRequest, setErrandsLeft, errandsLeft } = useDashCtx();
   const [d] = useDash();
   const user = getUser();
 
@@ -52,6 +52,13 @@ export default function DashHome() {
     return !periodStart || created >= periodStart;
   }).length;
   const usagePercent = plan.errands > 0 ? Math.round((Math.min(usedThisMonth, plan.errands) / plan.errands) * 100) : 0;
+
+  // Sync exhausted state to context so other components can gate the request flow
+  useEffect(() => {
+    if (apiErrands !== null && sub !== undefined) {
+      setErrandsLeft(Math.max(0, plan.errands - usedThisMonth));
+    }
+  }, [apiErrands, sub, plan.errands, usedThisMonth, setErrandsLeft]);
 
   // Days until renewal
   const renewIn = sub?.currentPeriodEnd
@@ -127,9 +134,9 @@ export default function DashHome() {
           <CardTitle>Quick Actions</CardTitle>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: 'New Errand',   icon: 'Plus',    action: openRequest },
-              { label: 'Repeat Last',  icon: 'Repeat',  action: openRequest },
-              { label: 'Schedule',     icon: 'Calendar',action: openRequest },
+              { label: 'New Errand',   icon: 'Plus',    action: () => errandsLeft === 0 ? router.push('/checkout?errand=single') : openRequest() },
+              { label: 'Repeat Last',  icon: 'Repeat',  action: () => errandsLeft === 0 ? router.push('/checkout?errand=single') : openRequest() },
+              { label: 'Schedule',     icon: 'Calendar',action: () => errandsLeft === 0 ? router.push('/checkout?errand=single') : openRequest() },
               { label: 'Refer Friend', icon: 'Gift',    href: '/dashboard/refer' },
             ].map(({ label, icon, action, href }) => {
               const I = Icons[icon] || Icons.Plus;
