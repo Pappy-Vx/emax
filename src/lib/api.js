@@ -194,6 +194,20 @@ export const api = {
     markRead: (id) => apiFetch(`/notifications/${id}/read`, { method: 'PATCH', auth: true }),
   },
 
+  checkout: {
+    /**
+     * POST /checkout/sessions — create a server-side checkout session.
+     * Accepts { type: 'new_subscription'|'plan_switch'|'single_errand', planId, billingCycle }.
+     * Returns the session object including its id (UUID), chargeCents, creditCents.
+     */
+    createSession: (dto) =>
+      apiFetch('/checkout/sessions', { method: 'POST', body: dto, auth: true }),
+
+    /** GET /checkout/sessions/:id — fetch session for display (owner only). */
+    getSession: (sessionId) =>
+      apiFetch(`/checkout/sessions/${sessionId}`, { auth: true }),
+  },
+
   flags: {
     /** GET /feature-flags — public */
     list: () => apiFetch('/feature-flags'),

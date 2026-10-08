@@ -226,27 +226,26 @@ export default function DashSubscription() {
   const currentRank = currentPlan?.rank ?? 0;
   const currentCycle = sub?.billingCycle ?? 'monthly';
 
-  // ── Upgrade: preview proration → checkout ─────────────────────────
+  // ── Upgrade: create server-side session → checkout ────────────────
   const requestSwitch = async (plan, selectedCycle) => {
     setErr('');
     setBusy(true);
     try {
-      const result = await api.subscription.previewSwitch(plan.id, selectedCycle);
-      const params = new URLSearchParams({
-        switch:       'true',
+      const session = await api.checkout.createSession({
+        type:         'plan_switch',
         planId:       plan.id,
         billingCycle: selectedCycle,
-        creditCents:  String(result.prorationCreditCents),
-        chargeCents:  String(result.chargedCents),
       });
-      router.push(`/checkout?${params.toString()}`);
+      router.push(`/checkout?session=${session.id}`);
     } catch (ex) {
       const raw = ex.message ?? '';
       try {
         const parsed = JSON.parse(raw);
         if (parsed.code === 'DOWNGRADE_NOT_ALLOWED') { setShowDowngrade(true); setBusy(false); return; }
-      } catch { /* ignore parse error */ }
-      setErr(raw || 'Could not calculate switch cost. Please try again.');
+        setErr(parsed.message || raw);
+      } catch {
+        setErr(raw || 'Could not initiate plan switch. Please try again.');
+      }
     } finally {
       setBusy(false);
     }

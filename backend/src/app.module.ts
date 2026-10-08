@@ -16,6 +16,7 @@ import { NotificationModule } from './services/notification/notification.module'
 import { NotificationsModule } from './notifications/notifications.module';
 import { WalletModule } from './wallet/wallet.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { CheckoutModule } from './checkout/checkout.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     PaymentModule,
     WalletModule,
     SubscriptionModule,
+    CheckoutModule,
     FeatureFlagsModule,
     MailModule,
     NotificationModule,

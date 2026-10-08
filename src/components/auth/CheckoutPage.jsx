@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Icons from '@/components/icons';
@@ -58,13 +58,16 @@ export default function CheckoutPage() {
   const router        = useRouter();
   const params        = useSearchParams();
 
-  // When coming from /dashboard/subscription, these are pre-filled
-  const switchMode    = params.get('switch') === 'true';
-  const errandSingle  = params.get('errand') === 'single';
-  const paramPlanId   = errandSingle ? 'single_errand' : params.get('planId');
-  const paramCycle    = params.get('billingCycle');
-  const paramCredit   = parseInt(params.get('creditCents') ?? '0', 10);
-  const paramCharge   = parseInt(params.get('chargeCents') ?? '0', 10);
+  // ── Session-based checkout (new secure flow) ──────────────────────
+  // When coming from /dashboard/subscription the URL is /checkout?session=<uuid>.
+  // Legacy non-switch flows still use ?planId=...&billingCycle=... or ?errand=single.
+  const sessionId   = params.get('session');
+  const errandSingle = !sessionId && params.get('errand') === 'single';
+  const paramPlanId  = sessionId ? null : (errandSingle ? 'single_errand' : params.get('planId'));
+  const paramCycle   = sessionId ? null : params.get('billingCycle');
+
+  const [session, setSession]           = useState(null);
+  const [sessionLoading, setSessionLoading] = useState(!!sessionId);
 
   const [selectedId, setSelectedId_local] = useState(
     () => paramPlanId || getSelectedPlan() || PLANS.find(p => p.id === 'family').id,
@@ -76,11 +79,31 @@ export default function CheckoutPage() {
   const [err, setErr]   = useState('');
   const [failMsg, setFailMsg] = useState('');
 
+  // Fetch session from backend when URL has a session ID
+  useEffect(() => {
+    if (!sessionId) return;
+    api.checkout.getSession(sessionId)
+      .then((s) => {
+        setSession(s);
+        setSelectedId_local(s.planId);
+        setBillingCycle(s.billingCycle);
+        setSessionLoading(false);
+      })
+      .catch((ex) => {
+        setFailMsg(ex.message || 'Checkout session not found or expired. Please go back and try again.');
+        setState('failed');
+        setSessionLoading(false);
+      });
+  }, [sessionId]);
+
+  // Effective values — session takes precedence over URL params
+  const switchMode   = session?.type === 'plan_switch';
+  const isSingle     = session?.type === 'single_errand' || errandSingle;
+
   const plan      = PLANS.find((p) => p.id === selectedId) || PLANS[1];
-  // In switch mode the charge amount was pre-calculated by the backend (proration applied)
-  const price     = switchMode && paramCharge > 0
-    ? paramCharge / 100
-    : planPrice(plan.id, billingCycle);
+  // In switch mode the charge comes from the server-side session; never from URL params
+  const price     = session ? session.chargeCents / 100 : planPrice(plan.id, billingCycle);
+  const creditCents = session?.creditCents ?? 0;
   const savings   = yearlySavings(plan.id);
   const brand     = cardBrand(card.number);
   const { ready: gpayReady, requestPayment: gpayRequest } = useGooglePay();
@@ -106,16 +129,25 @@ export default function CheckoutPage() {
   };
 
   const handleFailure = (msg) => {
-    setFailMsg(msg || 'Something went wrong. Please try again.');
+    let displayMsg = msg || 'Something went wrong. Please try again.';
+    // Backend errors for plan switches are JSON-encoded — extract the human-readable message
+    try {
+      const parsed = JSON.parse(displayMsg);
+      if (parsed.message) displayMsg = parsed.message;
+    } catch { /* not JSON, show as-is */ }
+    setFailMsg(displayMsg);
     setState('failed');
   };
 
   // ── Core charge dispatcher ───────────────────────────────────────
   const processCharge = async (paymentPayload) => {
     if (switchMode) {
-      return api.subscription.switch(selectedId, billingCycle);
+      // Session-based switch: planId and billingCycle come from the server-side session
+      const planIdToSwitch = session?.planId ?? selectedId;
+      const cycleToSwitch  = session?.billingCycle ?? billingCycle;
+      return api.subscription.switch(planIdToSwitch, cycleToSwitch);
     }
-    return api.payment.process({ ...paymentPayload, planId: selectedId, billingCycle: errandSingle ? 'monthly' : billingCycle });
+    return api.payment.process({ ...paymentPayload, planId: selectedId, billingCycle: isSingle ? 'monthly' : billingCycle });
   };
 
   // ── Card payment ─────────────────────────────────────────────────
@@ -166,13 +198,27 @@ export default function CheckoutPage() {
     }
   };
 
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-navy/50">
+          <svg className="animate-spin w-8 h-8" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <span className="text-sm">Loading checkout…</span>
+        </div>
+      </div>
+    );
+  }
+
   if (state === 'done') {
     return (
       <PaymentResultModal
         type="success"
-        title={errandSingle ? 'Errand unlocked!' : switchMode ? 'Plan switched!' : 'You are all set!'}
+        title={isSingle ? 'Errand unlocked!' : switchMode ? 'Plan switched!' : 'You are all set!'}
         message={
-          errandSingle
+          isSingle
             ? 'Your single errand has been paid. Heading to your dashboard to schedule it…'
             : switchMode
             ? `You are now on the ${plan.name} plan (${billingCycle}). Taking you to your dashboard…`
@@ -201,25 +247,25 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="bg-white border-b border-navy/8 px-5 py-4 flex items-center gap-3">
         <Link
-          href={errandSingle ? '/dashboard' : switchMode ? '/dashboard/subscription' : '/pricing'}
+          href={isSingle ? '/dashboard' : switchMode ? '/dashboard/subscription' : '/pricing'}
           className="flex items-center gap-1 text-navy/55 hover:text-navy text-sm font-medium transition"
         >
           <Icons.ChevLeft size={16} stroke={2} />
-          {errandSingle ? 'Dashboard' : switchMode ? 'Subscription' : 'Pricing'}
+          {isSingle ? 'Dashboard' : switchMode ? 'Subscription' : 'Pricing'}
         </Link>
         <div className="flex-1 text-center font-display font-bold text-navy text-base">
-          {errandSingle ? 'Buy a single errand' : switchMode ? 'Switch plan' : 'Complete your order'}
+          {isSingle ? 'Buy a single errand' : switchMode ? 'Switch plan' : 'Complete your order'}
         </div>
         <div className="w-16" />
       </div>
 
       {/* Switch mode proration banner */}
-      {switchMode && paramCredit > 0 && (
+      {switchMode && creditCents > 0 && (
         <div className="bg-green-50 border-b border-green-100 px-5 py-3 flex items-center gap-2 text-sm text-green-700">
           <Icons.Check size={16} stroke={2.5} />
           <span>
-            <strong>${(paramCredit / 100).toFixed(2)}</strong> prorated credit from your current plan applied.
-            You&apos;ll be charged <strong>${(paramCharge / 100).toFixed(2)}</strong> today.
+            <strong>${(creditCents / 100).toFixed(2)}</strong> prorated credit from your current plan applied.
+            You&apos;ll be charged <strong>${price.toFixed(2)}</strong> today.
           </span>
         </div>
       )}
@@ -227,8 +273,8 @@ export default function CheckoutPage() {
       <div className="max-w-3xl mx-auto px-5 py-10 grid lg:grid-cols-2 gap-8">
         {/* Left: order summary (fixed when plan pre-selected) or plan picker */}
         <div>
-          {paramPlanId ? (
-            /* ── Fixed plan — show summary only ── */
+          {(sessionId || paramPlanId) ? (
+            /* ── Fixed plan (session or URL) — show summary only ── */
             <>
               <h2 className="font-display font-bold text-navy text-xl mb-4">Order Summary</h2>
               <div className="bg-white rounded-2xl border border-navy/8 overflow-hidden">
@@ -240,7 +286,7 @@ export default function CheckoutPage() {
                   <div>
                     <div className="font-display font-bold text-navy text-lg">{plan.name}</div>
                     <div className="text-navy/55 text-sm">
-                      {errandSingle ? 'One-time charge · No subscription' : `${plan.errands} errands/month · ${plan.tagline}`}
+                      {isSingle ? 'One-time charge · No subscription' : `${plan.errands} errands/month · ${plan.tagline}`}
                     </div>
                   </div>
                 </div>
@@ -259,7 +305,7 @@ export default function CheckoutPage() {
                     <span className="text-navy/60">{plan.name} plan</span>
                     <span className="font-semibold text-navy">${planPrice(plan.id, billingCycle).toFixed(2)}</span>
                   </div>
-                  {!errandSingle && (
+                  {!isSingle && (
                     <div className="flex items-center justify-between text-[14px] pb-3 border-b border-navy/8">
                       <span className="text-navy/60">Billing</span>
                       <span className="text-navy capitalize">{billingCycle}</span>
@@ -271,10 +317,10 @@ export default function CheckoutPage() {
                       <span>-${savings.toFixed(2)}</span>
                     </div>
                   )}
-                  {switchMode && paramCredit > 0 && (
+                  {switchMode && creditCents > 0 && (
                     <div className="flex items-center justify-between text-[13px] pb-3 border-b border-navy/8 text-green-600 font-semibold">
                       <span>Prorated credit</span>
-                      <span>-${(paramCredit / 100).toFixed(2)}</span>
+                      <span>-${(creditCents / 100).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between font-display font-bold text-navy text-lg pt-1">
@@ -282,7 +328,7 @@ export default function CheckoutPage() {
                     <span>${price.toFixed(2)}</span>
                   </div>
                   <p className="text-xs text-navy/40">
-                    {errandSingle ? 'One-time charge — schedule your errand after payment.' : 'Cancel or pause anytime from your dashboard.'}
+                    {isSingle ? 'One-time charge — schedule your errand after payment.' : 'Cancel or pause anytime from your dashboard.'}
                   </p>
                 </div>
               </div>
@@ -447,7 +493,7 @@ export default function CheckoutPage() {
                       Processing…
                     </>
                   ) : (
-                    <>Subscribe · ${price}/{billingCycle === 'yearly' ? 'yr' : 'mo'}</>
+                    <>{switchMode ? 'Switch plan' : 'Subscribe'} · ${price.toFixed(2)}{isSingle ? '' : billingCycle === 'yearly' ? '/yr' : '/mo'}</>
                   )}
                 </button>
 
