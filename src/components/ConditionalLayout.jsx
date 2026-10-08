@@ -1,5 +1,6 @@
 'use client';
 import { usePathname } from 'next/navigation';
+import { Toaster } from 'sonner';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingWhatsapp from './FloatingWhatsapp';
@@ -15,6 +16,7 @@ export default function ConditionalLayout({ children }) {
       {children}
       {!hide && <Footer />}
       {!hide && <FloatingWhatsapp />}
+      <Toaster position="bottom-right" richColors closeButton />
     </>
   );
 }

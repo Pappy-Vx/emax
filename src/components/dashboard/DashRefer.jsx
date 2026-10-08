@@ -19,7 +19,7 @@ export default function DashRefer() {
   const copy = () => {
     try { navigator.clipboard.writeText(referralLink); } catch {}
     setCopied(true);
-    notify('Link copied to clipboard!');
+    notify('Link copied to clipboard!', 'info');
     setTimeout(() => setCopied(false), 2000);
   };
 

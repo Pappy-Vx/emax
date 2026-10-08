@@ -46,7 +46,7 @@ export default function DashAddresses() {
       setEditId(null);
       setForm({ label: '', line: '', note: '' });
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 
@@ -54,9 +54,9 @@ export default function DashAddresses() {
     try {
       await api.addresses.remove(id);
       setAddresses((s) => s.filter((a) => a.id !== id));
-      notify('Address removed.');
+      notify('Address removed.', 'info');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 
@@ -66,7 +66,7 @@ export default function DashAddresses() {
       setAddresses((s) => s.map((a) => ({ ...a, isPrimary: a.id === id })));
       notify('Default address updated.');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 

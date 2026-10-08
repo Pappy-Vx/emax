@@ -224,87 +224,141 @@ export default function CheckoutPage() {
       )}
 
       <div className="max-w-3xl mx-auto px-5 py-10 grid lg:grid-cols-2 gap-8">
-        {/* Plan picker */}
+        {/* Left: order summary (fixed when plan pre-selected) or plan picker */}
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-bold text-navy text-xl">Choose a plan</h2>
-            {/* Billing cycle toggle */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-navy/5 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-3 py-1.5 rounded-lg transition ${billingCycle === 'monthly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingCycle('yearly')}
-                className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
-              >
-                Yearly
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold text-navy font-bold">-17%</span>
-              </button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {PLANS.map((p) => {
-              const PI = ICON_MAP[p.iconKey] || Icons.Briefcase;
-              const active = p.id === selectedId;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => choosePlan(p.id)}
-                  className={`w-full text-left flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
-                    active ? 'border-gold bg-gold/5 shadow-gold' : 'border-navy/10 bg-white hover:border-navy/20'
-                  }`}
-                >
-                  <div className={`grid place-items-center w-10 h-10 rounded-xl flex-shrink-0 ${active ? 'bg-gold text-navy' : 'bg-navy/5 text-navy'}`}>
-                    <PI size={20} stroke={1.9} />
+          {paramPlanId ? (
+            /* ── Fixed plan — show summary only ── */
+            <>
+              <h2 className="font-display font-bold text-navy text-xl mb-4">Order Summary</h2>
+              <div className="bg-white rounded-2xl border border-navy/8 overflow-hidden">
+                {/* Plan header */}
+                <div className="p-5 border-b border-navy/8 flex items-center gap-4">
+                  <div className="grid place-items-center w-12 h-12 rounded-2xl bg-gold text-navy flex-shrink-0">
+                    {(() => { const PI = ICON_MAP[plan.iconKey] || Icons.Briefcase; return <PI size={22} stroke={1.9} />; })()}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-display font-bold text-navy text-sm flex items-center gap-2">
-                      {p.name}
-                      {p.popular && <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-amber-700 font-semibold">Popular</span>}
-                    </div>
-                    <div className="text-navy/55 text-xs">{p.errands} errands/month</div>
+                  <div>
+                    <div className="font-display font-bold text-navy text-lg">{plan.name}</div>
+                    <div className="text-navy/55 text-sm">{plan.errands} errands/month · {plan.tagline}</div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="font-display font-bold text-navy text-lg">
-                      ${(billingCycle === 'yearly' ? p.yearlyPrice : p.price).toFixed(2)}
-                    </div>
-                    <div className="text-[10px] text-navy/45">
-                      {billingCycle === 'yearly' ? '/yr' : '/mo'}
-                    </div>
+                </div>
+                {/* Features */}
+                <ul className="p-5 space-y-2.5 border-b border-navy/8">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-navy/70">
+                      <Icons.Check size={14} stroke={2.5} className="text-gold shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {/* Totals */}
+                <div className="p-5 space-y-2.5">
+                  <div className="flex items-center justify-between text-[14px]">
+                    <span className="text-navy/60">{plan.name} plan</span>
+                    <span className="font-semibold text-navy">${planPrice(plan.id, billingCycle).toFixed(2)}</span>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Order summary */}
-          <div className="mt-6 bg-white rounded-2xl border border-navy/8 p-5">
-            <div className="flex items-center justify-between text-[15px] mb-2">
-              <span className="text-navy/60">{plan.name} plan</span>
-              <span className="font-semibold text-navy">${price}.00</span>
-            </div>
-            <div className="flex items-center justify-between text-[15px] mb-3 pb-3 border-b border-navy/8">
-              <span className="text-navy/60">Billing</span>
-              <span className="text-navy capitalize">{billingCycle}</span>
-            </div>
-            {billingCycle === 'yearly' && (
-              <div className="flex items-center justify-between text-[13px] mb-3 pb-3 border-b border-navy/8 text-green-600 font-semibold">
-                <span>You save</span>
-                <span>${savings}.00 vs monthly</span>
+                  <div className="flex items-center justify-between text-[14px] pb-3 border-b border-navy/8">
+                    <span className="text-navy/60">Billing</span>
+                    <span className="text-navy capitalize">{billingCycle}</span>
+                  </div>
+                  {billingCycle === 'yearly' && savings > 0 && (
+                    <div className="flex items-center justify-between text-[13px] pb-3 border-b border-navy/8 text-green-600 font-semibold">
+                      <span>Yearly savings</span>
+                      <span>-${savings.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {switchMode && paramCredit > 0 && (
+                    <div className="flex items-center justify-between text-[13px] pb-3 border-b border-navy/8 text-green-600 font-semibold">
+                      <span>Prorated credit</span>
+                      <span>-${(paramCredit / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between font-display font-bold text-navy text-lg pt-1">
+                    <span>Total today</span>
+                    <span>${price.toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-navy/40">Cancel or pause anytime from your dashboard.</p>
+                </div>
               </div>
-            )}
-            <div className="flex items-center justify-between font-display font-bold text-navy text-lg">
-              <span>Total today</span>
-              <span>${price}.00</span>
-            </div>
-            <p className="mt-2 text-xs text-navy/40">Cancel or pause anytime from your dashboard.</p>
-          </div>
+            </>
+          ) : (
+            /* ── No plan pre-selected — show picker ── */
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display font-bold text-navy text-xl">Choose a plan</h2>
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-navy/5 text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`px-3 py-1.5 rounded-lg transition ${billingCycle === 'monthly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillingCycle('yearly')}
+                    className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${billingCycle === 'yearly' ? 'bg-white shadow text-navy' : 'text-navy/55 hover:text-navy'}`}
+                  >
+                    Yearly
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gold text-navy font-bold">-17%</span>
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {PLANS.map((p) => {
+                  const PI = ICON_MAP[p.iconKey] || Icons.Briefcase;
+                  const active = p.id === selectedId;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => choosePlan(p.id)}
+                      className={`w-full text-left flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${
+                        active ? 'border-gold bg-gold/5 shadow-gold' : 'border-navy/10 bg-white hover:border-navy/20'
+                      }`}
+                    >
+                      <div className={`grid place-items-center w-10 h-10 rounded-xl flex-shrink-0 ${active ? 'bg-gold text-navy' : 'bg-navy/5 text-navy'}`}>
+                        <PI size={20} stroke={1.9} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-display font-bold text-navy text-sm flex items-center gap-2">
+                          {p.name}
+                          {p.popular && <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-amber-700 font-semibold">Popular</span>}
+                        </div>
+                        <div className="text-navy/55 text-xs">{p.errands} errands/month</div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-display font-bold text-navy text-lg">
+                          ${(billingCycle === 'yearly' ? p.yearlyPrice : p.price).toFixed(2)}
+                        </div>
+                        <div className="text-[10px] text-navy/45">{billingCycle === 'yearly' ? '/yr' : '/mo'}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-6 bg-white rounded-2xl border border-navy/8 p-5">
+                <div className="flex items-center justify-between text-[15px] mb-2">
+                  <span className="text-navy/60">{plan.name} plan</span>
+                  <span className="font-semibold text-navy">${price.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center justify-between text-[15px] mb-3 pb-3 border-b border-navy/8">
+                  <span className="text-navy/60">Billing</span>
+                  <span className="text-navy capitalize">{billingCycle}</span>
+                </div>
+                {billingCycle === 'yearly' && (
+                  <div className="flex items-center justify-between text-[13px] mb-3 pb-3 border-b border-navy/8 text-green-600 font-semibold">
+                    <span>You save</span>
+                    <span>${savings.toFixed(2)} vs monthly</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between font-display font-bold text-navy text-lg">
+                  <span>Total today</span>
+                  <span>${price.toFixed(2)}</span>
+                </div>
+                <p className="mt-2 text-xs text-navy/40">Cancel or pause anytime from your dashboard.</p>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Payment section */}

@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Icons from '@/components/icons';
@@ -6,6 +7,7 @@ import { useDash } from '@/lib/dash-store';
 import { useDashCtx } from '@/lib/dash-context';
 import { getUser, getPlan } from '@/lib/auth';
 import { PLANS } from '@/lib/plans';
+import { api } from '@/lib/api';
 import { Card, CardTitle, Pill, SvcIcon } from './DashUI';
 
 const STEPS = ['Requested', 'Confirmed', 'Picked up', 'On the way', 'Delivered'];
@@ -23,18 +25,38 @@ export default function DashHome() {
   const { openRequest } = useDashCtx();
   const [d] = useDash();
   const user = getUser();
-  const planId = getPlan() || 'family';
-  const plan = PLANS.find((p) => p.id === planId) || PLANS[1];
 
-  const upcoming = d.errands.filter((e) => ['scheduled', 'confirmed', 'on-the-way'].includes(e.status));
-  const recent   = d.errands.filter((e) => e.status === 'completed').slice(0, 4);
+  const [sub, setSub]             = useState(null);
+  const [apiErrands, setApiErrands] = useState(null); // null = loading
+
+  useEffect(() => {
+    api.subscription.me().then(setSub).catch(() => setSub(null));
+    api.errands.list().then(setApiErrands).catch(() => setApiErrands([]));
+  }, []);
+
+  // Resolve plan from subscription, fall back to local store
+  const planId = sub?.planId || getPlan() || 'family';
+  const plan   = PLANS.find((p) => p.id === planId) || PLANS[1];
+
+  // Errands: prefer API list; fall back to local store while loading
+  const errands  = apiErrands ?? d.errands;
+  const upcoming = errands.filter((e) => ['scheduled', 'confirmed', 'on-the-way'].includes(e.status));
+  const recent   = errands.filter((e) => e.status === 'completed').slice(0, 4);
   const active   = upcoming.find((e) => e.status === 'on-the-way') || upcoming[0];
 
-  const usedErrands = d.errands.filter((e) => e.status === 'completed').length;
-  const usedThisMonth = Math.min(usedErrands, plan.errands);
-  const usagePercent = Math.round((usedThisMonth / plan.errands) * 100);
+  // Count errands used in the current billing period (since period start)
+  const periodStart = sub?.currentPeriodStart ? new Date(sub.currentPeriodStart) : null;
+  const usedThisMonth = errands.filter((e) => {
+    if (e.status === 'cancelled') return false;
+    const created = new Date(e.createdAt ?? e.scheduledAt ?? 0);
+    return !periodStart || created >= periodStart;
+  }).length;
+  const usagePercent = plan.errands > 0 ? Math.round((Math.min(usedThisMonth, plan.errands) / plan.errands) * 100) : 0;
 
-  const renewIn = 14; // placeholder days until renewal
+  // Days until renewal
+  const renewIn = sub?.currentPeriodEnd
+    ? Math.max(0, Math.ceil((new Date(sub.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
@@ -51,7 +73,7 @@ export default function DashHome() {
               <span className="text-xs px-2 py-0.5 rounded-full bg-gold/15 text-amber-700 font-semibold">{plan.errands} errands/month</span>
             </div>
             <div className="text-navy/55 text-sm mb-3">
-              {usedThisMonth} of {plan.errands} errands used · renews in {renewIn} days
+              {usedThisMonth} of {plan.errands} errands used{renewIn !== null ? ` · renews in ${renewIn} day${renewIn === 1 ? '' : 's'}` : ''}
             </div>
             <div className="w-full bg-navy/8 rounded-full h-2.5 overflow-hidden">
               <div
@@ -140,8 +162,10 @@ export default function DashHome() {
             <SvcIcon type={active.type} />
             <div>
               <div className="font-semibold text-navy text-sm">{active.type}</div>
-              <div className="text-navy/55 text-xs">{active.from} → {active.to}</div>
-              <div className="text-navy/40 text-xs mt-0.5">{active.when}</div>
+              <div className="text-navy/55 text-xs">{active.fromAddress ?? active.from} → {active.toAddress ?? active.to}</div>
+              <div className="text-navy/40 text-xs mt-0.5">
+                {active.scheduledAt ? new Date(active.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : active.when}
+              </div>
             </div>
             <div className="ml-auto"><Pill status={active.status} /></div>
           </div>
@@ -207,7 +231,9 @@ export default function DashHome() {
                 <SvcIcon type={e.type} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-navy">{e.type}</div>
-                  <div className="text-xs text-navy/50">{e.when}</div>
+                  <div className="text-xs text-navy/50">
+                    {e.scheduledAt ? new Date(e.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : e.when}
+                  </div>
                 </div>
                 <Pill status={e.status} />
               </div>
@@ -226,7 +252,9 @@ export default function DashHome() {
                 <SvcIcon type={e.type} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-navy">{e.type}</div>
-                  <div className="text-xs text-navy/50">{e.when}</div>
+                  <div className="text-xs text-navy/50">
+                    {e.scheduledAt ? new Date(e.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : e.when}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Pill status={e.status} />

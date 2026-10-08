@@ -135,19 +135,23 @@ export default function Navbar() {
           </a>
           <Link href="/blog" className={navLinkCls}>Blog</Link>
           <Link href="/contact" className={navLinkCls}>Contact</Link>
-          {FLAGS.dashboard && (
-            <Link href="/dashboard" className={`${navLinkCls} inline-flex items-center gap-1.5`}>
-              <Icons.User size={14} stroke={2} />
-              Sign in
-            </Link>
-          )}
         </nav>
 
-        {/* Book Now — desktop only */}
-        <GoldButton size="sm" href={TEL} className="hidden lg:inline-flex flex-shrink-0">
-          <Icons.Phone size={15} stroke={2.2} />
-          Book Now
-        </GoldButton>
+        {/* Desktop CTA group */}
+        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+          {FLAGS.dashboard && (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-navy border-2 border-gold rounded-full hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-200"
+            >
+              Login
+            </Link>
+          )}
+          <GoldButton size="sm" href={TEL}>
+            <Icons.Phone size={15} stroke={2.2} />
+            Book Now
+          </GoldButton>
+        </div>
 
         {/* Hamburger — phones + tablets (below lg) */}
         <button
@@ -233,15 +237,18 @@ export default function Navbar() {
           <Link href="/contact" onClick={() => setOpen(false)} className="flex items-center px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
             Contact
           </Link>
-          {FLAGS.dashboard && (
-            <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-2 px-3 py-3 text-[15px] font-medium text-navy rounded-xl hover:bg-navy/4 transition">
-              <Icons.User size={16} stroke={2} />
-              Sign in
-            </Link>
-          )}
 
           {/* CTA */}
-          <div className="mt-3 pt-3 border-t border-navy/8">
+          <div className="mt-3 pt-3 border-t border-navy/8 flex flex-col gap-2">
+            {FLAGS.dashboard && (
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-full border-2 border-gold text-navy text-[15px] font-semibold hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all"
+              >
+                Login
+              </Link>
+            )}
             <GoldButton href={TEL} className="w-full" onClick={() => setOpen(false)}>
               <Icons.Phone size={16} stroke={2.2} />
               Call or Text Now

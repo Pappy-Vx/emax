@@ -103,7 +103,7 @@ export default function DashCards() {
       await reload();
       notify('Default payment updated.');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 
@@ -111,9 +111,9 @@ export default function DashCards() {
     try {
       await api.wallet.remove(id);
       setWallets((s) => s.filter((w) => w.id !== id));
-      notify('Payment method removed.');
+      notify('Payment method removed.', 'info');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 
@@ -143,14 +143,14 @@ export default function DashCards() {
     try {
       await api.wallet.remove(googleWallet.id);
       setWallets((s) => s.filter((w) => w.id !== googleWallet.id));
-      notify('Google Pay disconnected.');
+      notify('Google Pay disconnected.', 'info');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 
   const connectApplePay = () => {
-    notify('Apple Pay setup coming soon — requires Safari.');
+    notify('Apple Pay setup coming soon — requires Safari.', 'info');
   };
 
   const disconnectApplePay = async () => {
@@ -158,9 +158,9 @@ export default function DashCards() {
     try {
       await api.wallet.remove(appleWallet.id);
       setWallets((s) => s.filter((w) => w.id !== appleWallet.id));
-      notify('Apple Pay disconnected.');
+      notify('Apple Pay disconnected.', 'info');
     } catch (err) {
-      notify(err.message);
+      notify(err.message, 'error');
     }
   };
 

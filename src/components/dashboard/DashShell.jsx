@@ -2,12 +2,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Toaster } from 'sonner';
 import Icons from '@/components/icons';
 import { getUser, logout } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { useInactivityLogout } from '@/lib/use-inactivity-logout';
 import { DashProvider, useDashCtx } from '@/lib/dash-context';
 import { useDash } from '@/lib/dash-store';
-import { RequestModal, NotifDropdown, Toast } from './DashUI';
+import { RequestModal, NotifDropdown } from './DashUI';
 import BeeLoader from '@/components/ui/BeeLoader';
 
 const NAV = [
@@ -27,7 +29,7 @@ const NAV = [
 function DashShellInner({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { toast, requestOpen, setRequestOpen, openRequest } = useDashCtx();
+  const { requestOpen, setRequestOpen, openRequest, notify } = useDashCtx();
   const [d, up] = useDash();
   const [user, setUser] = useState(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -49,16 +51,24 @@ function DashShellInner({ children }) {
   const unreadCount = d.notifications.filter((n) => !n.read).length;
   const markAllRead = () => up((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
 
-  const handleRequest = (data) => {
-    const newErrand = {
-      id: Date.now(),
-      type: data.type,
-      from: data.from,
-      to: data.to,
-      when: data.date + ' · ' + data.time,
-      status: 'scheduled',
+  const handleRequest = async (data) => {
+    const scheduledAt = `${data.date}T${data.time}:00`;
+    const dto = {
+      type:               data.type,
+      fromAddress:        data.from,
+      toAddress:          data.to,
+      scheduledAt,
+      notes:              data.notes || undefined,
+      isRecurring:        data.freq !== 'One time',
+      recurringFrequency: data.freq !== 'One time' ? data.freq : undefined,
     };
-    up((s) => ({ ...s, errands: [newErrand, ...s.errands] }));
+    try {
+      const errand = await api.errands.create(dto);
+      up((s) => ({ ...s, errands: [errand, ...s.errands] }));
+      notify('Errand requested!');
+    } catch (err) {
+      notify(err.message || 'Could not submit errand request.', 'error');
+    }
   };
 
   if (!user) return <BeeLoader message="Loading your dashboard…" />;
@@ -264,7 +274,7 @@ function DashShellInner({ children }) {
         onClose={() => setRequestOpen(false)}
         onSubmit={handleRequest}
       />
-      <Toast msg={toast} />
+      <Toaster position="bottom-right" richColors closeButton />
     </div>
   );
 }

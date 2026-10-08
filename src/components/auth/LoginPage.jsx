@@ -3,59 +3,9 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Icons from '@/components/icons';
-import { signIn, signUp, verifyOtp, resendOtp, getSelectedPlan } from '@/lib/auth';
+import { signIn, signUp, verifyOtp, resendOtp } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { PLANS } from '@/lib/plans';
 import BeeLoader from '@/components/ui/BeeLoader';
-
-const ICON_MAP = { Briefcase: Icons.Briefcase, Heart: Icons.Heart, Building: Icons.Building };
-
-function PlanSide({ planId: propPlanId }) {
-  const planId = propPlanId || getSelectedPlan();
-  const plan = PLANS.find((p) => p.id === planId) || PLANS[1];
-  const PlanIcon = ICON_MAP[plan.iconKey] || Icons.Heart;
-  return (
-    <div className="relative h-full min-h-[320px] flex flex-col justify-between p-8 lg:p-12 overflow-hidden bg-navy text-white">
-      <div className="absolute inset-0 hex-pattern opacity-40 pointer-events-none" />
-      <div className="absolute -bottom-24 -right-16 w-80 h-80 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
-      <div className="relative">
-        <Link href="/" className="flex items-center gap-2.5 mb-12">
-          <div className="grid place-items-center w-10 h-10 rounded-xl bg-gold text-navy">
-            <span className="font-display font-black text-xl leading-none">e</span>
-          </div>
-          <div className="leading-tight">
-            <div className="font-display font-black text-white text-lg tracking-tight">eMax</div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-gold/90 font-semibold">Errands &amp; More</div>
-          </div>
-        </Link>
-        <div className="text-xs uppercase tracking-[0.18em] text-gold font-semibold mb-2">Your selected plan</div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="grid place-items-center w-10 h-10 rounded-xl bg-gold text-navy">
-            <PlanIcon size={20} stroke={1.9} />
-          </div>
-          <div>
-            <div className="font-display font-bold text-xl">{plan.name}</div>
-            <div className="text-white/60 text-sm">${plan.price.toFixed(2)}/month · {plan.errands} errands</div>
-          </div>
-        </div>
-        <ul className="space-y-2.5 mt-6">
-          {plan.features.map((f) => (
-            <li key={f} className="flex items-start gap-2.5 text-[14px] text-white/80">
-              <Icons.Check size={16} stroke={2.5} className="text-gold shrink-0 mt-0.5" />
-              {f}
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="relative mt-8">
-        <Link href="/pricing" className="text-white/55 text-sm hover:text-white transition flex items-center gap-1">
-          <Icons.ChevLeft size={14} stroke={2} />
-          Back to pricing
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 // ── OTP screen ────────────────────────────────────────────────────
 function OtpScreen({ email, onVerify, onBack }) {
@@ -209,28 +159,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex items-center justify-center bg-cream px-5 py-16">
       <BeeLoader
         show={busy}
         message={mode === 'login' ? 'Signing you in…' : 'Creating your account…'}
       />
-      {/* Left: plan panel (hidden on small screens) */}
-      <div className="hidden lg:flex lg:w-[420px] xl:w-[480px] flex-shrink-0">
-        <PlanSide planId={planIdFromRedirect} />
-      </div>
 
-      {/* Right: form area */}
-      <div className="flex-1 flex items-center justify-center px-5 py-16 bg-cream">
-        {otpMode ? (
-          <OtpScreen
-            email={otpEmail}
-            onVerify={handleOtpVerify}
-            onBack={() => { setOtpMode(false); setErr(''); }}
-          />
-        ) : (
-          <div className="w-full max-w-[400px]">
-            {/* Mobile logo */}
-            <div className="lg:hidden mb-8 flex items-center gap-2.5">
+      {otpMode ? (
+        <OtpScreen
+          email={otpEmail}
+          onVerify={handleOtpVerify}
+          onBack={() => { setOtpMode(false); setErr(''); }}
+        />
+      ) : (
+        <div className="w-full max-w-[420px]">
+          {/* Logo */}
+          <div className="mb-8 flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5">
               <div className="grid place-items-center w-10 h-10 rounded-xl bg-gold text-navy">
                 <span className="font-display font-black text-xl leading-none">e</span>
               </div>
@@ -238,16 +183,17 @@ export default function LoginPage() {
                 <div className="font-display font-black text-navy text-lg tracking-tight">eMax</div>
                 <div className="text-[10px] uppercase tracking-[0.18em] text-navy/60 font-semibold">Errands &amp; More</div>
               </div>
-            </div>
+            </Link>
+          </div>
 
-            <h1 className="font-display font-black text-navy text-3xl mb-1">
-              {mode === 'login' ? 'Welcome back' : 'Create account'}
-            </h1>
-            <p className="text-navy/55 text-[15px] mb-8">
-              {mode === 'login'
-                ? 'Sign in to manage your errands.'
-                : 'Sign up to get started with your plan.'}
-            </p>
+          <h1 className="font-display font-black text-navy text-3xl mb-1">
+            {mode === 'login' ? 'Welcome back' : 'Create account'}
+          </h1>
+          <p className="text-navy/55 text-[15px] mb-8">
+            {mode === 'login'
+              ? 'Sign in to manage your errands.'
+              : 'Sign up to get started with your plan.'}
+          </p>
 
             {/* Google OAuth button — real browser redirect to backend */}
             <a
@@ -350,7 +296,6 @@ export default function LoginPage() {
             </p>
           </div>
         )}
-      </div>
     </div>
   );
 }

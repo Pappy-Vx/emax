@@ -38,7 +38,7 @@ export default function DashSettings() {
   };
 
   const handleLogout = () => { logout(); router.replace('/'); };
-  const handleDelete = () => { logout(); notify('Account deleted.'); router.replace('/'); };
+  const handleDelete = () => { logout(); notify('Account deleted.', 'warning'); router.replace('/'); };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -83,7 +83,7 @@ export default function DashSettings() {
             <div className="font-semibold text-navy text-sm">Live errand tracking</div>
             <div className="text-xs text-navy/45 mt-0.5">Share your real-time location with your runner (coming soon)</div>
           </div>
-          <Toggle on={d.tracking} onToggle={() => { up((s) => ({ ...s, tracking: !s.tracking })); notify(d.tracking ? 'Tracking off.' : 'Tracking on.'); }} />
+          <Toggle on={d.tracking} onToggle={() => { up((s) => ({ ...s, tracking: !s.tracking })); notify(d.tracking ? 'Tracking off.' : 'Tracking on.', 'info'); }} />
         </div>
       </Card>
 

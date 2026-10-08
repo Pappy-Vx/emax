@@ -25,7 +25,7 @@ export default function DashRecurring() {
 
   const remove = (id) => {
     up((s) => ({ ...s, recurring: s.recurring.filter((r) => r.id !== id) }));
-    notify('Recurring errand removed.');
+    notify('Recurring errand removed.', 'info');
   };
 
   const addNew = (e) => {

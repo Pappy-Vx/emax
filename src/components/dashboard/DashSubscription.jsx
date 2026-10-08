@@ -264,7 +264,7 @@ export default function DashSubscription() {
       const updated = await api.subscription.cancel();
       setSub(updated);
       setShowCancel(false);
-      notify('Subscription cancelled. Active until ' + fmtDate(updated.currentPeriodEnd));
+      notify('Subscription cancelled. Active until ' + fmtDate(updated.currentPeriodEnd), 'warning');
     } catch (ex) {
       setErr(ex.message ?? 'Could not cancel.');
     } finally {

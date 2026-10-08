@@ -58,7 +58,7 @@ export default function DashNotifications() {
     const now = new Date().toISOString();
     setNotifs((s) => s.map((n) => ({ ...n, readAt: n.readAt ?? now })));
     notifs.filter((n) => !n.readAt).forEach((n) => api.notifications.markRead(n.id).catch(() => {}));
-    notify('All notifications marked as read.');
+    notify('All notifications marked as read.', 'info');
   };
 
   const togglePref = (key) => {
