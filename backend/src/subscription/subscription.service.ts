@@ -6,6 +6,7 @@ import { Repository, LessThanOrEqual } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Subscription, BillingCycle, SubscriptionStatus } from './entities/subscription.entity';
 import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
+import { Errand } from '../errands/entities/errand.entity';
 import { SwitchPlanDto } from './dto/switch-plan.dto';
 import { PLAN_MAP } from '../common/constants/plans.constant';
 import { UsersService } from '../users/users.service';
@@ -21,6 +22,8 @@ export class SubscriptionService {
     private readonly subRepo: Repository<Subscription>,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(Errand)
+    private readonly errandRepo: Repository<Errand>,
     private readonly usersService: UsersService,
     private readonly events: EventEmitter2,
   ) {}
@@ -105,7 +108,7 @@ export class SubscriptionService {
       throw new BadRequestException('You are already on this plan.');
     }
 
-    const prorationCreditCents = this.calculateProration(current);
+    const prorationCreditCents = await this.calculateProration(current, userId);
     const chargedCents = Math.max(0, newAmountCents - prorationCreditCents);
     return { prorationCreditCents, chargedCents };
   }
@@ -150,7 +153,7 @@ export class SubscriptionService {
     }
 
     // ── Proration ────────────────────────────────────────────────
-    const prorationCreditCents = this.calculateProration(current);
+    const prorationCreditCents = await this.calculateProration(current, userId);
     const chargedCents = Math.max(0, newAmountCents - prorationCreditCents);
 
     // Expire current subscription, create the new one
@@ -319,22 +322,46 @@ export class SubscriptionService {
     return d;
   }
 
-  private calculateProration(sub: Subscription): number {
-    const now          = new Date();
-    const periodStart  = sub.currentPeriodStart.getTime();
-    const periodEnd    = sub.currentPeriodEnd.getTime();
-    const totalMs      = periodEnd - periodStart;
-    const remainingMs  = Math.max(0, periodEnd - now.getTime());
+  private async calculateProration(sub: Subscription, userId: string): Promise<number> {
+    const now         = new Date();
+    const periodStart = sub.currentPeriodStart.getTime();
+    const periodEnd   = sub.currentPeriodEnd.getTime();
+    const totalMs     = periodEnd - periodStart;
+    const remainingMs = Math.max(0, periodEnd - now.getTime());
 
     if (totalMs <= 0) return 0;
 
-    // Always base the credit on the full published plan price, not the discounted
-    // amountCents stored on the subscription (which may reflect a prior proration).
     const plan = PLAN_MAP.get(sub.planId);
-    const fullPriceCents = sub.billingCycle === BillingCycle.YEARLY
-      ? (plan?.yearlyPrice ?? 0) * 100
-      : (plan?.price ?? 0) * 100;
+    if (!plan) return 0;
 
-    return Math.round((remainingMs / totalMs) * fullPriceCents);
+    // Base credit on full published plan price (not the discounted amountCents).
+    const fullPriceCents = sub.billingCycle === BillingCycle.YEARLY
+      ? plan.yearlyPrice * 100
+      : plan.price * 100;
+
+    // ── Time fraction ────────────────────────────────────────────
+    const timeFraction = remainingMs / totalMs;
+
+    // ── Errand fraction: how many errands are still unused ───────
+    // Count non-cancelled errands created since this billing period started.
+    const errandsUsed = await this.errandRepo
+      .createQueryBuilder('e')
+      .where('e.userId = :userId',         { userId })
+      .andWhere('e.status != :cancelled',  { cancelled: 'cancelled' })
+      .andWhere('e.createdAt >= :start',   { start: sub.currentPeriodStart })
+      .andWhere('e.isDeleted = :deleted',  { deleted: false })
+      .getCount();
+
+    const planErrands      = plan.errands;
+    const errandsRemaining = Math.max(0, planErrands - errandsUsed);
+
+    // Errand fraction: 0 when all used (→ no credit), 1 when none used (→ full time credit)
+    const errandFraction = planErrands > 0 ? errandsRemaining / planErrands : timeFraction;
+
+    // Credit = the lesser of the two fractions — a user who burned all errands
+    // has consumed the full plan value regardless of how much time remains.
+    const creditFraction = Math.min(timeFraction, errandFraction);
+
+    return Math.round(creditFraction * fullPriceCents);
   }
 }

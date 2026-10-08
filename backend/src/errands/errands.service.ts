@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Errand } from './entities/errand.entity';
 import { CreateErrandDto } from './dto/create-errand.dto';
 import { UsersService } from '../users/users.service';
-import { NotificationService } from '../services/notification/notification.service';
+import { NOTIFY } from '../notifications/events/notification.events';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 const POINTS_PER_ERRAND = 20;
 
@@ -16,7 +18,7 @@ export class ErrandsService {
     @InjectRepository(Errand)
     private readonly repo: Repository<Errand>,
     private readonly usersService: UsersService,
-    private readonly notifications: NotificationService,
+    private readonly events: EventEmitter2,
   ) {}
 
   async create(userId: string, dto: CreateErrandDto): Promise<Errand> {
@@ -34,6 +36,16 @@ export class ErrandsService {
     const saved = await this.repo.save(errand);
     const user = await this.usersService.findById(userId).catch(() => null);
     this.logger.log(`[${user?.email ?? userId}] errand created (id=${saved.id} type=${dto.type} scheduledAt=${dto.scheduledAt})`);
+    if (user) {
+      this.events.emit(NOTIFY.ERRAND_CREATED, {
+        userId,
+        recipientEmail: user.email,
+        type:           NotificationType.ERRAND_CREATED,
+        title:          'Errand requested',
+        body:           `Your ${dto.type} errand has been received and is pending confirmation. Scheduled for ${new Date(dto.scheduledAt).toLocaleString()}.`,
+        metadata:       { errandId: saved.id, errandType: dto.type },
+      });
+    }
     return saved;
   }
 
@@ -60,7 +72,14 @@ export class ErrandsService {
     const updated = await this.findOne(id, userId);
     const user = await this.usersService.findById(userId);
     this.logger.log(`[${user.email}] errand cancelled (id=${id} type=${errand.type})`);
-    this.notifications.notifyErrandUpdate(user.email, errand.type, 'cancelled').catch(() => {});
+    this.events.emit(NOTIFY.ERRAND_CANCELLED, {
+      userId,
+      recipientEmail: user.email,
+      type:           NotificationType.ERRAND_CANCELLED,
+      title:          'Errand cancelled',
+      body:           `Your ${errand.type} errand scheduled for ${errand.scheduledAt.toLocaleString()} has been cancelled.`,
+      metadata:       { errandId: id, errandType: errand.type },
+    });
     return updated;
   }
 
@@ -72,7 +91,14 @@ export class ErrandsService {
     const updated = await this.repo.findOneBy({ id });
     const user = await this.usersService.findById(errand.userId);
     this.logger.log(`[${user.email}] errand completed (id=${id} type=${errand.type} +${POINTS_PER_ERRAND} pts)`);
-    this.notifications.notifyErrandUpdate(user.email, errand.type, 'completed').catch(() => {});
+    this.events.emit(NOTIFY.ERRAND_COMPLETED, {
+      userId:         errand.userId,
+      recipientEmail: user.email,
+      type:           NotificationType.ERRAND_COMPLETED,
+      title:          'Errand completed',
+      body:           `Your ${errand.type} errand has been completed. You earned ${POINTS_PER_ERRAND} loyalty points!`,
+      metadata:       { errandId: id, errandType: errand.type, pointsEarned: POINTS_PER_ERRAND },
+    });
     return updated!;
   }
 
@@ -83,7 +109,40 @@ export class ErrandsService {
     const updated = await this.repo.findOneBy({ id });
     const user = await this.usersService.findById(errand.userId);
     this.logger.log(`[${user.email}] errand status → ${status} (id=${id} type=${errand.type})`);
-    this.notifications.notifyErrandUpdate(user.email, errand.type, status).catch(() => {});
+
+    type StatusMeta = { event: string; type: NotificationType; title: string; body: string };
+    const STATUS_EVENTS: Partial<Record<string, StatusMeta>> = {
+      confirmed: {
+        event: NOTIFY.ERRAND_CONFIRMED,
+        type:  NotificationType.ERRAND_CONFIRMED,
+        title: 'Errand confirmed',
+        body:  `Your ${errand.type} errand has been confirmed and an agent is on it.`,
+      },
+      picked_up: {
+        event: NOTIFY.ERRAND_PICKED_UP,
+        type:  NotificationType.ERRAND_PICKED_UP,
+        title: 'Errand picked up',
+        body:  `Your ${errand.type} errand has been picked up and is heading to the delivery address.`,
+      },
+      'on-the-way': {
+        event: NOTIFY.ERRAND_PICKED_UP,
+        type:  NotificationType.ERRAND_PICKED_UP,
+        title: 'Errand on the way',
+        body:  `Your ${errand.type} errand is on the way to the delivery address.`,
+      },
+    };
+
+    const ev = STATUS_EVENTS[status];
+    if (ev) {
+      this.events.emit(ev.event, {
+        userId:         errand.userId,
+        recipientEmail: user.email,
+        type:           ev.type,
+        title:          ev.title,
+        body:           ev.body,
+        metadata:       { errandId: id, errandType: errand.type, newStatus: status },
+      });
+    }
     return updated!;
   }
 }

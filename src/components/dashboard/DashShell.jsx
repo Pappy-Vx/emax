@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Toaster } from 'sonner';
@@ -26,6 +26,22 @@ const NAV = [
   { id: 'settings',      label: 'Settings',        href: '/dashboard/settings',      icon: 'User' },
 ];
 
+function relativeTime(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 2)  return 'Just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)  return `${hrs} hr ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
+function mapNotif(n) {
+  return { ...n, read: !!n.readAt, time: relativeTime(n.createdAt) };
+}
+
 function DashShellInner({ children }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -34,12 +50,24 @@ function DashShellInner({ children }) {
   const [user, setUser] = useState(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const pollRef = useRef(null);
 
   useEffect(() => {
     const u = getUser();
     if (!u) { router.replace('/login'); return; }
     setUser(u);
   }, [router]);
+
+  useEffect(() => {
+    const load = () =>
+      api.notifications.me()
+        .then((raw) => setNotifications(raw.map(mapNotif)))
+        .catch(() => {});
+    load();
+    pollRef.current = setInterval(load, 30_000);
+    return () => clearInterval(pollRef.current);
+  }, []);
 
   const handleOpenErrand = useCallback(() => {
     if (errandsLeft === 0) router.push('/checkout?errand=single');
@@ -53,8 +81,13 @@ function DashShellInner({ children }) {
 
   useInactivityLogout(handleLogout);
 
-  const unreadCount = d.notifications.filter((n) => !n.read).length;
-  const markAllRead = () => up((s) => ({ ...s, notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => {
+    setNotifications((ns) => {
+      ns.filter((n) => !n.read).forEach((n) => api.notifications.markRead(n.id).catch(() => {}));
+      return ns.map((n) => ({ ...n, read: true }));
+    });
+  };
 
   const handleRequest = async (data) => {
     const scheduledAt = `${data.date}T${data.time}:00`;
@@ -71,6 +104,10 @@ function DashShellInner({ children }) {
       const errand = await api.errands.create(dto);
       up((s) => ({ ...s, errands: [errand, ...s.errands] }));
       notify('Errand requested!');
+      // Refresh bell so the new notification appears immediately
+      api.notifications.me()
+        .then((raw) => setNotifications(raw.map(mapNotif)))
+        .catch(() => {});
     } catch (err) {
       notify(err.message || 'Could not submit errand request.', 'error');
     }
@@ -177,7 +214,7 @@ function DashShellInner({ children }) {
                 )}
               </button>
               <NotifDropdown
-                notifications={d.notifications}
+                notifications={notifications}
                 open={notifOpen}
                 onClose={() => setNotifOpen(false)}
                 onMarkAll={markAllRead}
