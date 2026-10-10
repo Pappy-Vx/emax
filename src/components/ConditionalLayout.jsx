@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import FloatingWhatsapp from './FloatingWhatsapp';
+import HalloweenPromo from './HalloweenPromo';
 
 const NO_CHROME = ['/login', '/checkout', '/auth/google'];
 
@@ -17,6 +18,7 @@ export default function ConditionalLayout({ children }) {
       {!hide && <Footer />}
       {!hide && <FloatingWhatsapp />}
       <Toaster position="bottom-right" richColors closeButton />
+      <HalloweenPromo />
     </>
   );
 }
