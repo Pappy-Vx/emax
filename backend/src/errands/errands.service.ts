@@ -1,8 +1,9 @@
 import {
   Injectable, NotFoundException, ForbiddenException, Logger,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, Not } from 'typeorm';
+import { Repository, Between, Not, IsNull } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Errand } from './entities/errand.entity';
 import { Subscription, SubscriptionStatus, BillingCycle } from '../subscription/entities/subscription.entity';
@@ -246,9 +247,52 @@ export class ErrandsService {
     }
   }
 
-  // ── Rider auto-assignment ────────────────────────────────────────
+  // ── Business hours & rider assignment ───────────────────────────
+
+  // Returns the current hour (0-23) in the Columbus, Indiana timezone.
+  private businessHour(): number {
+    return parseInt(
+      new Intl.DateTimeFormat('en-US', {
+        hour:     'numeric',
+        hour12:   false,
+        timeZone: 'America/Indiana/Indianapolis',
+      }).format(new Date()),
+      10,
+    );
+  }
+
+  private isWithinBusinessHours(): boolean {
+    const h = this.businessHour();
+    return h >= 9 && h < 17; // 9 AM – 5 PM
+  }
+
+  // Runs every day at 9 AM Columbus time — picks up all errands that arrived outside
+  // business hours and had no rider assigned yet.
+  @Cron('0 9 * * *', { timeZone: 'America/Indiana/Indianapolis' })
+  async processQueuedErrands(): Promise<void> {
+    this.logger.log('[Cron 9am] Processing queued (unassigned) errands…');
+    const queued = await this.repo.find({
+      where: {
+        riderId:   IsNull(),
+        isDeleted: false,
+        status:    Not('cancelled') as any,
+      },
+    });
+    for (const errand of queued) {
+      await this.autoAssignRider(errand);
+    }
+    this.logger.log(`[Cron 9am] Processed ${queued.length} queued errand(s).`);
+  }
 
   async autoAssignRider(errand: Errand): Promise<void> {
+    if (!this.isWithinBusinessHours()) {
+      this.logger.log(
+        `Errand ${errand.id} queued — outside business hours ` +
+        `(current hour: ${this.businessHour()}, window: 9–17 ET)`,
+      );
+      return;
+    }
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(todayStart);
