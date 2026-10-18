@@ -71,6 +71,19 @@ export class OpsService {
   async overrideErrand(id: string, action: 'complete' | 'cancel'): Promise<Errand> {
     const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
+
+    if (action === 'complete' && errand.scheduledAt) {
+      const unlockAt = new Date(errand.scheduledAt).getTime() + 60_000;
+      if (Date.now() < unlockAt) {
+        const scheduled = new Date(errand.scheduledAt).toLocaleString('en-US', {
+          weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+        });
+        throw new BadRequestException(
+          `Cannot complete a future errand. Scheduled for ${scheduled} — try again later.`,
+        );
+      }
+    }
+
     const status = action === 'complete' ? 'completed' : 'cancelled';
     // Also clear any pending cancellation request when admin closes the errand
     await this.errandRepo.update(id, { status, cancellationRequested: false });
