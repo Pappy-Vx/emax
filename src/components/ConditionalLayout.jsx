@@ -10,7 +10,11 @@ const NO_CHROME = ['/login', '/checkout', '/auth/google'];
 
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname();
-  const hide = NO_CHROME.includes(pathname) || pathname.startsWith('/dashboard');
+  const hide =
+    NO_CHROME.includes(pathname) ||
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/ops') ||
+    pathname.startsWith('/rider');
   return (
     <>
       {!hide && <Navbar />}

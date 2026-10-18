@@ -212,4 +212,42 @@ export const api = {
     /** GET /feature-flags — public */
     list: () => apiFetch('/feature-flags'),
   },
+
+  ops: {
+    errands: (params = {}) => {
+      const q = new URLSearchParams(
+        Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+      ).toString();
+      return apiFetch(`/ops/errands${q ? `?${q}` : ''}`, { auth: true });
+    },
+    overrideErrand: (id, action) =>
+      apiFetch(`/ops/errands/${id}/override`, { method: 'PATCH', body: { action }, auth: true }),
+    assignRider: (errandId, riderId) =>
+      apiFetch(`/ops/errands/${errandId}/assign`, { method: 'PATCH', body: { riderId }, auth: true }),
+
+    customers: (params = {}) => {
+      const q = new URLSearchParams(
+        Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+      ).toString();
+      return apiFetch(`/ops/customers${q ? `?${q}` : ''}`, { auth: true });
+    },
+
+    riders: (params = {}) => {
+      const q = new URLSearchParams(
+        Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+      ).toString();
+      return apiFetch(`/ops/riders${q ? `?${q}` : ''}`, { auth: true });
+    },
+    createRider: (dto) =>
+      apiFetch('/ops/riders', { method: 'POST', body: dto, auth: true }),
+  },
+
+  rider: {
+    errands: () => apiFetch('/rider/errands', { auth: true }),
+    errand:  (id) => apiFetch(`/rider/errands/${id}`, { auth: true }),
+    complete: (id, code) =>
+      apiFetch(`/rider/errands/${id}/complete`, { method: 'POST', body: { code }, auth: true }),
+    updateStatus: (id, status) =>
+      apiFetch(`/rider/errands/${id}/status`, { method: 'PATCH', body: { status }, auth: true }),
+  },
 };

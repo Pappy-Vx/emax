@@ -76,7 +76,7 @@ export default function PricingPage() {
       {/* Plans */}
       <section className="bg-cream pb-24">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 -mt-28 relative grid md:grid-cols-3 gap-5">
-          {PLANS.map((p, i) => {
+          {PLANS.filter((p) => p.id !== 'single_errand').map((p, i) => {
             const PlanIcon = ICON_MAP[p.iconKey] || Icons.Briefcase;
             const price = cycle === 'yearly' ? p.yearlyPrice : p.price;
             const savings = yearlySavings(p.id);

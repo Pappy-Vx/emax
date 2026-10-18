@@ -2,12 +2,13 @@ import {
   Injectable, NotFoundException, ForbiddenException, Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Between, Not } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Errand } from './entities/errand.entity';
 import { Subscription, SubscriptionStatus, BillingCycle } from '../subscription/entities/subscription.entity';
 import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
 import { CreateErrandDto } from './dto/create-errand.dto';
+import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { NOTIFY } from '../notifications/events/notification.events';
 import { NotificationType } from '../notifications/entities/notification.entity';
@@ -26,12 +27,16 @@ export class ErrandsService {
     private readonly subRepo: Repository<Subscription>,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly usersService: UsersService,
     private readonly events: EventEmitter2,
   ) {}
 
   async create(userId: string, dto: CreateErrandDto): Promise<Errand> {
     await this.assertCanCreateErrand(userId);
+
+    const code = String(Math.floor(1000 + Math.random() * 9000));
 
     const errand = this.repo.create({
       userId,
@@ -43,8 +48,11 @@ export class ErrandsService {
       isRecurring:        dto.isRecurring ?? false,
       recurringFrequency: dto.recurringFrequency,
       status:             'scheduled',
+      code,
     });
     const saved = await this.repo.save(errand);
+    // Auto-assign to the least-loaded active runner (max 3 errands/day)
+    await this.autoAssignRider(saved);
     const user = await this.usersService.findById(userId).catch(() => null);
     this.logger.log(`[${user?.email ?? userId}] errand created (id=${saved.id} type=${dto.type} scheduledAt=${dto.scheduledAt})`);
     if (user) {
@@ -236,5 +244,49 @@ export class ErrandsService {
         }),
       );
     }
+  }
+
+  // ── Rider auto-assignment ────────────────────────────────────────
+
+  async autoAssignRider(errand: Errand): Promise<void> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+
+    const runners = await this.userRepo.find({
+      where: { role: 'runner', isDeleted: false },
+    });
+    if (!runners.length) return;
+
+    const counts = await Promise.all(
+      runners.map(async (r) => {
+        const count = await this.repo.count({
+          where: {
+            riderId:    r.id,
+            isDeleted:  false,
+            riderAssignedAt: Between(todayStart, todayEnd),
+            status:     Not('cancelled'),
+          },
+        });
+        return { runner: r, count };
+      }),
+    );
+
+    const available = counts
+      .filter((c) => c.count < 3)
+      .sort((a, b) => a.count - b.count);
+
+    if (!available.length) {
+      this.logger.warn(`No available runners for errand ${errand.id} — all at daily limit`);
+      return;
+    }
+
+    const assigned = available[0].runner;
+    await this.repo.update(errand.id, {
+      riderId:         assigned.id,
+      riderAssignedAt: new Date(),
+    });
+    this.logger.log(`Errand ${errand.id} auto-assigned to runner ${assigned.email}`);
   }
 }

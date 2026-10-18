@@ -5,10 +5,11 @@ import { ErrandsController } from './errands.controller';
 import { Errand } from './entities/errand.entity';
 import { Subscription } from '../subscription/entities/subscription.entity';
 import { Payment } from '../payment/entities/payment.entity';
+import { User } from '../users/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports:     [TypeOrmModule.forFeature([Errand, Subscription, Payment]), UsersModule],
+  imports:     [TypeOrmModule.forFeature([Errand, Subscription, Payment, User]), UsersModule],
   providers:   [ErrandsService],
   controllers: [ErrandsController],
   exports:     [ErrandsService],

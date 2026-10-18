@@ -48,4 +48,15 @@ export class Errand extends BaseEntity {
 
   @Column({ type: 'int', default: 20 })
   pointsAwarded: number;
+
+  // 4-digit customer confirmation code — rider must enter this to complete the errand
+  @Column({ type: 'varchar', length: 4, nullable: true })
+  code: string | null;
+
+  // Assigned runner (User with role='runner')
+  @Column({ type: 'varchar', nullable: true })
+  riderId: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  riderAssignedAt: Date | null;
 }
