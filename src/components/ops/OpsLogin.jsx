@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { applySession, getUser } from '@/lib/auth';
+import { applyOpsSession, getOpsUser } from '@/lib/auth';
 
 export default function OpsLogin() {
   const router = useRouter();
@@ -18,8 +18,8 @@ export default function OpsLogin() {
     try {
       const res = await api.auth.login(email, password);
       if (res.otpRequired) { setErr('2FA not supported for ops login yet.'); return; }
-      applySession(res);
-      const user = getUser();
+      applyOpsSession(res);
+      const user = getOpsUser();
       if (user?.role !== 'admin') {
         setErr('Access denied. Admin credentials required.');
         return;

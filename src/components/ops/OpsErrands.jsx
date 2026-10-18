@@ -2,6 +2,79 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
 
+function CancellationRequests({ onResolved }) {
+  const [requests, setRequests] = useState([]);
+  const [acting, setActing]     = useState(null);
+
+  async function load() {
+    try { setRequests(await api.ops.cancellations()); } catch {}
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function act(id, approve) {
+    setActing(id);
+    try {
+      if (approve) await api.ops.approveCancellation(id);
+      else         await api.ops.denyCancellation(id);
+      await load();
+      onResolved?.();
+    } catch (e) {
+      alert(e.message);
+    } finally {
+      setActing(null);
+    }
+  }
+
+  if (!requests.length) return null;
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-xs font-bold">
+          {requests.length}
+        </span>
+        <h3 className="text-sm font-bold text-orange-700 uppercase tracking-wide">Cancellation Requests</h3>
+      </div>
+      <div className="flex flex-col gap-3">
+        {requests.map((e) => (
+          <div key={e.id} className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex items-start gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-mono font-bold text-navy">{e.code ?? '—'}</span>
+                <span className="text-xs text-gray-500 capitalize">{e.type}</span>
+                <span className="text-xs text-gray-400">·</span>
+                <span className="text-xs text-gray-600 font-medium">{e.user?.name ?? '—'}</span>
+              </div>
+              <p className="text-xs text-gray-500 truncate mb-1">{e.fromAddress} → {e.toAddress}</p>
+              <p className="text-xs text-orange-700 italic">
+                Reason: "{e.cancellationRequestReason ?? 'No reason provided'}"
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Requested {e.cancellationRequestedAt ? new Date(e.cancellationRequestedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 shrink-0">
+              <button
+                onClick={() => act(e.id, true)} disabled={acting === e.id}
+                className="text-xs px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium disabled:opacity-50"
+              >
+                Approve Cancel
+              </button>
+              <button
+                onClick={() => act(e.id, false)} disabled={acting === e.id}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium disabled:opacity-50"
+              >
+                Deny
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const STATUSES = ['', 'scheduled', 'confirmed', 'picked-up', 'on-the-way', 'completed', 'cancelled'];
 
 const STATUS_COLORS = {
@@ -61,6 +134,9 @@ export default function OpsErrands() {
     <div>
       <h2 className="font-display font-black text-navy text-2xl mb-6">Errands</h2>
 
+      {/* Pending cancellation requests — resolving one also refreshes the errand table */}
+      <CancellationRequests onResolved={load} />
+
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-5">
         <input
@@ -106,22 +182,30 @@ export default function OpsErrands() {
               <tr><td colSpan={7} className="text-center py-10 text-gray-400">No errands found.</td></tr>
             )}
             {!loading && result?.data?.map((e) => (
-              <tr key={e.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+              <tr key={e.id} className={`border-b border-gray-50 last:border-0 hover:bg-gray-50/50 ${e.cancellationRequested ? 'bg-orange-50/60' : ''}`}>
                 <td className="px-4 py-3 font-mono font-bold text-navy">{e.code ?? '—'}</td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-navy">{e.user?.name ?? '—'}</p>
                   <p className="text-gray-400 text-xs">{e.user?.email ?? ''}</p>
                 </td>
                 <td className="px-4 py-3 capitalize text-gray-600">{e.type}</td>
-                <td className="px-4 py-3 max-w-[200px]">
+                <td className="px-4 py-3 max-w-[220px]">
                   <p className="text-xs text-gray-500 truncate">{e.fromAddress}</p>
                   <p className="text-xs text-gray-400 truncate">→ {e.toAddress}</p>
+                  {e.notes && (
+                    <p className="text-xs text-amber-600 mt-1 truncate italic" title={e.notes}>📝 {e.notes}</p>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{fmt(e.scheduledAt)}</td>
                 <td className="px-4 py-3">
                   <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[e.status] ?? 'bg-gray-100 text-gray-600'}`}>
                     {e.status}
                   </span>
+                  {e.cancellationRequested && (
+                    <span className="ml-1 inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                      cancel req.
+                    </span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   {!['completed', 'cancelled'].includes(e.status) && (

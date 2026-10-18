@@ -76,4 +76,21 @@ export class OpsController {
     const passwordHash = await bcrypt.hash(dto.password, 12);
     return this.ops.createRider({ name: dto.name, email: dto.email, passwordHash });
   }
+
+  // ── Cancellation requests ────────────────────────────────────────
+
+  @Get('cancellations')
+  listCancellationRequests() {
+    return this.ops.listCancellationRequests();
+  }
+
+  @Patch('errands/:id/cancellation-approve')
+  approveCancellation(@Param('id') id: string) {
+    return this.ops.approveCancellation(id);
+  }
+
+  @Patch('errands/:id/cancellation-deny')
+  denyCancellation(@Param('id') id: string) {
+    return this.ops.denyCancellation(id);
+  }
 }

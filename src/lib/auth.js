@@ -1,4 +1,4 @@
-import { loadStore, saveStore } from './plans';
+import { loadStore, saveStore, loadOpsStore, saveOpsStore, loadRiderStore, saveRiderStore } from './plans';
 import { api } from './api';
 
 // ── Store accessors ───────────────────────────────────────────────
@@ -13,6 +13,25 @@ export const setToken        = (t) => saveStore({ token: t });
 export const setSelectedPlan = (id) => saveStore({ selectedPlan: id });
 
 export const logout = () => saveStore({ user: null, plan: null, token: null });
+
+// ── Staff portal sessions (isolated keys — don't share with customer portal) ──
+export const getOpsUser    = () => loadOpsStore().user   ?? null;
+export const getOpsToken   = () => loadOpsStore().token  ?? null;
+export const opsLogout     = () => saveOpsStore({ user: null, token: null });
+
+export const getRiderUser  = () => loadRiderStore().user  ?? null;
+export const getRiderToken = () => loadRiderStore().token ?? null;
+export const riderLogout   = () => saveRiderStore({ user: null, token: null });
+
+export function applyOpsSession({ access_token, user }) {
+  if (access_token) saveOpsStore({ token: access_token });
+  if (user)         saveOpsStore({ user });
+}
+
+export function applyRiderSession({ access_token, user }) {
+  if (access_token) saveRiderStore({ token: access_token });
+  if (user)         saveRiderStore({ user });
+}
 
 // ── Session aliases (used by DashAccount and other dashboard components) ─
 export const getSession   = () => loadStore().user ?? null;

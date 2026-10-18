@@ -2,7 +2,7 @@ import {
   Injectable, NotFoundException, BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, Not } from 'typeorm';
 import { Errand } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
 import { Subscription, SubscriptionStatus } from '../subscription/entities/subscription.entity';
@@ -72,7 +72,41 @@ export class OpsService {
     const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
     const status = action === 'complete' ? 'completed' : 'cancelled';
-    await this.errandRepo.update(id, { status });
+    // Also clear any pending cancellation request when admin closes the errand
+    await this.errandRepo.update(id, { status, cancellationRequested: false });
+    return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
+  }
+
+  // ── Cancellation requests ────────────────────────────────────────
+
+  async listCancellationRequests(): Promise<Errand[]> {
+    return this.errandRepo.find({
+      where:   { cancellationRequested: true, isDeleted: false },
+      relations: ['user'],
+      order:   { cancellationRequestedAt: 'ASC' },
+    });
+  }
+
+  async approveCancellation(id: string): Promise<Errand> {
+    const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    if (!errand.cancellationRequested) throw new BadRequestException('No pending cancellation request.');
+    await this.errandRepo.update(id, {
+      status: 'cancelled',
+      cancellationRequested: false,
+    });
+    return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
+  }
+
+  async denyCancellation(id: string): Promise<Errand> {
+    const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    if (!errand.cancellationRequested) throw new BadRequestException('No pending cancellation request.');
+    await this.errandRepo.update(id, {
+      cancellationRequested:     false,
+      cancellationRequestReason: null,
+      cancellationRequestedAt:   null,
+    });
     return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
   }
 
@@ -185,6 +219,7 @@ export class OpsService {
           riderId:         u.id,
           isDeleted:       false,
           riderAssignedAt: Between(todayStart, todayEnd),
+          status:          Not('cancelled'),
         },
       });
       const totalCompleted = await this.errandRepo.count({

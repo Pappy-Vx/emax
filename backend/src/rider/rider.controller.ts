@@ -39,4 +39,13 @@ export class RiderController {
   ) {
     return this.riderSvc.updateStatus(user.id, id, status);
   }
+
+  @Post('errands/:id/cancel-request')
+  requestCancellation(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.riderSvc.requestCancellation(user.id, id, reason);
+  }
 }

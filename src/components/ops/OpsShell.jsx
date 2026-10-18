@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getUser, logout } from '@/lib/auth';
+import { getOpsUser, opsLogout } from '@/lib/auth';
 
 const NAV = [
   { id: 'errands',   label: 'Errands',   href: '/ops/errands' },
@@ -15,7 +15,7 @@ export default function OpsShell({ children, active }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const u = getUser();
+    const u = getOpsUser();
     if (!u || u.role !== 'admin') {
       router.replace('/ops/login');
     } else {
@@ -26,7 +26,7 @@ export default function OpsShell({ children, active }) {
   if (!user) return null;
 
   function handleLogout() {
-    logout();
+    opsLogout();
     router.replace('/ops/login');
   }
 

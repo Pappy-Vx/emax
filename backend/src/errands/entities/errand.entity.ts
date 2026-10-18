@@ -59,4 +59,14 @@ export class Errand extends BaseEntity {
 
   @Column({ type: 'datetime', nullable: true })
   riderAssignedAt: Date | null;
+
+  // Rider-initiated cancellation request — must be approved by an admin
+  @Column({ type: 'tinyint', default: false })
+  cancellationRequested: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  cancellationRequestReason: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  cancellationRequestedAt: Date | null;
 }

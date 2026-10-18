@@ -2,7 +2,7 @@ import {
   Injectable, NotFoundException, ForbiddenException, BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Errand } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -12,6 +12,12 @@ export class RiderService {
     @InjectRepository(Errand) private readonly errandRepo: Repository<Errand>,
     @InjectRepository(User)   private readonly userRepo: Repository<User>,
   ) {}
+
+  // Returns true once the scheduled time has passed by at least 1 minute.
+  private isScheduledTimeReached(errand: Errand): boolean {
+    if (!errand.scheduledAt) return true;
+    return Date.now() >= new Date(errand.scheduledAt).getTime() + 60_000;
+  }
 
   async getMyErrands(riderId: string): Promise<Errand[]> {
     return this.errandRepo.find({
@@ -38,6 +44,17 @@ export class RiderService {
     if (['completed', 'cancelled'].includes(errand.status)) {
       throw new BadRequestException('Errand is already finalised.');
     }
+    if (!this.isScheduledTimeReached(errand)) {
+      const scheduled = new Date(errand.scheduledAt).toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+      throw new BadRequestException(
+        `This errand is scheduled for ${scheduled}. It cannot be completed.`,
+      );
+    }
+    if (errand.cancellationRequested) {
+      throw new BadRequestException('This errand has a pending cancellation request. Wait for admin review.');
+    }
     if (errand.code !== code) {
       throw new BadRequestException('Incorrect customer code. Please ask the customer for their 4-digit confirmation code.');
     }
@@ -49,7 +66,39 @@ export class RiderService {
     const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
     if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (!this.isScheduledTimeReached(errand)) {
+      const scheduled = new Date(errand.scheduledAt).toLocaleString('en-US', {
+        weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+      throw new BadRequestException(
+        `This errand is scheduled for ${scheduled}. Status cannot be updated.`,
+      );
+    }
+    if (errand.cancellationRequested) {
+      throw new BadRequestException('This errand has a pending cancellation request. Status cannot be changed.');
+    }
     await this.errandRepo.update(errandId, { status });
     return this.errandRepo.findOneBy({ id: errandId }) as Promise<Errand>;
+  }
+
+  async requestCancellation(riderId: string, errandId: string, reason: string): Promise<Errand> {
+    const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (['completed', 'cancelled'].includes(errand.status)) {
+      throw new BadRequestException('This errand is already finalised.');
+    }
+    if (errand.cancellationRequested) {
+      throw new BadRequestException('A cancellation request is already pending for this errand.');
+    }
+    if (!reason?.trim()) {
+      throw new BadRequestException('A reason is required to request cancellation.');
+    }
+    await this.errandRepo.update(errandId, {
+      cancellationRequested:     true,
+      cancellationRequestReason: reason.trim(),
+      cancellationRequestedAt:   new Date(),
+    });
+    return this.errandRepo.findOne({ where: { id: errandId }, relations: ['user'] }) as Promise<Errand>;
   }
 }

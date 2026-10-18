@@ -7,23 +7,28 @@
 
 const BASE = process.env.BASE_API_URL ?? 'https://emax-oohv.onrender.com/api/v1';
 
-// Read token directly from localStorage (same store key as auth.js) — avoids circular imports
-const STORE_KEY = 'emax_proto_v1';
-
-function getStoredToken() {
+// Read tokens from their respective isolated localStorage keys — avoids circular imports
+function _readToken(key) {
   if (typeof window === 'undefined') return null;
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}').token ?? null;
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(localStorage.getItem(key) ?? '{}').token ?? null; } catch { return null; }
 }
+const getStoredToken  = () => _readToken('emax_proto_v1');
+const getOpsToken     = () => _readToken('emax_ops_v1');
+const getRiderToken   = () => _readToken('emax_rider_v1');
 
-async function apiFetch(path, { method = 'GET', body, auth = false } = {}) {
+async function apiFetch(path, { method = 'GET', body, auth = false, authOps = false, authRider = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
 
   if (auth) {
     const token = getStoredToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (authOps) {
+    const token = getOpsToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (authRider) {
+    const token = getRiderToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -218,36 +223,45 @@ export const api = {
       const q = new URLSearchParams(
         Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
       ).toString();
-      return apiFetch(`/ops/errands${q ? `?${q}` : ''}`, { auth: true });
+      return apiFetch(`/ops/errands${q ? `?${q}` : ''}`, { authOps: true });
     },
     overrideErrand: (id, action) =>
-      apiFetch(`/ops/errands/${id}/override`, { method: 'PATCH', body: { action }, auth: true }),
+      apiFetch(`/ops/errands/${id}/override`, { method: 'PATCH', body: { action }, authOps: true }),
     assignRider: (errandId, riderId) =>
-      apiFetch(`/ops/errands/${errandId}/assign`, { method: 'PATCH', body: { riderId }, auth: true }),
+      apiFetch(`/ops/errands/${errandId}/assign`, { method: 'PATCH', body: { riderId }, authOps: true }),
 
     customers: (params = {}) => {
       const q = new URLSearchParams(
         Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
       ).toString();
-      return apiFetch(`/ops/customers${q ? `?${q}` : ''}`, { auth: true });
+      return apiFetch(`/ops/customers${q ? `?${q}` : ''}`, { authOps: true });
     },
 
     riders: (params = {}) => {
       const q = new URLSearchParams(
         Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''))
       ).toString();
-      return apiFetch(`/ops/riders${q ? `?${q}` : ''}`, { auth: true });
+      return apiFetch(`/ops/riders${q ? `?${q}` : ''}`, { authOps: true });
     },
     createRider: (dto) =>
-      apiFetch('/ops/riders', { method: 'POST', body: dto, auth: true }),
+      apiFetch('/ops/riders', { method: 'POST', body: dto, authOps: true }),
+
+    cancellations: () =>
+      apiFetch('/ops/cancellations', { authOps: true }),
+    approveCancellation: (id) =>
+      apiFetch(`/ops/errands/${id}/cancellation-approve`, { method: 'PATCH', authOps: true }),
+    denyCancellation: (id) =>
+      apiFetch(`/ops/errands/${id}/cancellation-deny`, { method: 'PATCH', authOps: true }),
   },
 
   rider: {
-    errands: () => apiFetch('/rider/errands', { auth: true }),
-    errand:  (id) => apiFetch(`/rider/errands/${id}`, { auth: true }),
+    errands: () => apiFetch('/rider/errands', { authRider: true }),
+    errand:  (id) => apiFetch(`/rider/errands/${id}`, { authRider: true }),
     complete: (id, code) =>
-      apiFetch(`/rider/errands/${id}/complete`, { method: 'POST', body: { code }, auth: true }),
+      apiFetch(`/rider/errands/${id}/complete`, { method: 'POST', body: { code }, authRider: true }),
     updateStatus: (id, status) =>
-      apiFetch(`/rider/errands/${id}/status`, { method: 'PATCH', body: { status }, auth: true }),
+      apiFetch(`/rider/errands/${id}/status`, { method: 'PATCH', body: { status }, authRider: true }),
+    requestCancellation: (id, reason) =>
+      apiFetch(`/rider/errands/${id}/cancel-request`, { method: 'POST', body: { reason }, authRider: true }),
   },
 };

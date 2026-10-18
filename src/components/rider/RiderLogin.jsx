@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { applySession, getUser } from '@/lib/auth';
+import { applyRiderSession, getRiderUser } from '@/lib/auth';
 
 export default function RiderLogin() {
   const router = useRouter();
@@ -18,8 +18,8 @@ export default function RiderLogin() {
     try {
       const res = await api.auth.login(email, password);
       if (res.otpRequired) { setErr('2FA not supported for rider login.'); return; }
-      applySession(res);
-      const user = getUser();
+      applyRiderSession(res);
+      const user = getRiderUser();
       if (user?.role !== 'runner') {
         setErr('Access denied. Rider credentials required.');
         return;

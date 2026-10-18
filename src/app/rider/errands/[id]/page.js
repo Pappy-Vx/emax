@@ -4,11 +4,12 @@ import RiderErrandDetail from '@/components/rider/RiderErrandDetail';
 
 export const metadata = { title: 'Errand Detail | Rider', robots: { index: false } };
 
-export default function RiderErrandDetailPage({ params }) {
+export default async function RiderErrandDetailPage({ params }) {
+  const { id } = await params;
   return (
     <RiderShell>
       <Suspense>
-        <RiderErrandDetail errandId={params.id} />
+        <RiderErrandDetail errandId={id} />
       </Suspense>
     </RiderShell>
   );
