@@ -131,10 +131,7 @@ export default function RiderErrandDetail({ errandId }) {
       {/* Errand card */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5">Errand code</p>
-            <p className="font-mono font-black text-3xl text-navy">{errand.code ?? '—'}</p>
-          </div>
+          <p className="font-display font-black text-navy text-xl capitalize">{errand.type} Errand</p>
           <div className="flex flex-col items-end gap-2">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
               errand.status === 'completed' ? 'bg-green-50 text-green-700' :

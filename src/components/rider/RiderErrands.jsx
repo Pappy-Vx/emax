@@ -24,10 +24,7 @@ function ErrandCard({ e, onClick }) {
       className="text-left w-full bg-white rounded-2xl border border-gray-100 p-4 hover:border-navy/20 hover:shadow-sm transition-all"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
-        <div>
-          <span className="font-mono font-bold text-navy text-base">{e.code ?? '—'}</span>
-          <span className="ml-2 text-xs text-gray-400 capitalize">{e.type}</span>
-        </div>
+        <span className="font-semibold text-navy text-base capitalize">{e.type} Errand</span>
         <span className={`shrink-0 inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[e.status] ?? 'bg-gray-100 text-gray-500'}`}>
           {e.status}
         </span>

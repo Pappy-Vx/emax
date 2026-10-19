@@ -13,6 +13,18 @@ export class RiderService {
     @InjectRepository(User)   private readonly userRepo: Repository<User>,
   ) {}
 
+  // Remove code from any errand object before returning to a rider — the customer
+  // gives it verbally at delivery; the rider must never see it in advance.
+  private stripCode(errand: Errand): Errand {
+    const safe = { ...errand } as any;
+    delete safe.code;
+    return safe as Errand;
+  }
+
+  private stripCodeMany(errands: Errand[]): Errand[] {
+    return errands.map((e) => this.stripCode(e));
+  }
+
   // Returns true once the scheduled time has passed by at least 1 minute.
   private isScheduledTimeReached(errand: Errand): boolean {
     if (!errand.scheduledAt) return true;
@@ -20,21 +32,22 @@ export class RiderService {
   }
 
   async getMyErrands(riderId: string): Promise<Errand[]> {
-    return this.errandRepo.find({
-      where:   { riderId, isDeleted: false },
-      order:   { riderAssignedAt: 'DESC' },
+    const errands = await this.errandRepo.find({
+      where:     { riderId, isDeleted: false },
+      order:     { riderAssignedAt: 'DESC' },
       relations: ['user'],
     });
+    return this.stripCodeMany(errands);
   }
 
   async getErrandDetail(riderId: string, errandId: string): Promise<Errand & { customer: User }> {
     const errand = await this.errandRepo.findOne({
-      where:   { id: errandId, isDeleted: false },
+      where:     { id: errandId, isDeleted: false },
       relations: ['user'],
     });
     if (!errand) throw new NotFoundException('Errand not found.');
     if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
-    return errand as Errand & { customer: User };
+    return this.stripCode(errand) as Errand & { customer: User };
   }
 
   async completeErrand(riderId: string, errandId: string, code: string): Promise<Errand> {
@@ -59,7 +72,7 @@ export class RiderService {
       throw new BadRequestException('Incorrect customer code. Please ask the customer for their 4-digit confirmation code.');
     }
     await this.errandRepo.update(errandId, { status: 'completed' });
-    return this.errandRepo.findOneBy({ id: errandId }) as Promise<Errand>;
+    return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
   }
 
   async updateStatus(riderId: string, errandId: string, status: 'confirmed' | 'picked-up' | 'on-the-way'): Promise<Errand> {
@@ -78,7 +91,7 @@ export class RiderService {
       throw new BadRequestException('This errand has a pending cancellation request. Status cannot be changed.');
     }
     await this.errandRepo.update(errandId, { status });
-    return this.errandRepo.findOneBy({ id: errandId }) as Promise<Errand>;
+    return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
   }
 
   async requestCancellation(riderId: string, errandId: string, reason: string): Promise<Errand> {
@@ -99,6 +112,7 @@ export class RiderService {
       cancellationRequestReason: reason.trim(),
       cancellationRequestedAt:   new Date(),
     });
-    return this.errandRepo.findOne({ where: { id: errandId }, relations: ['user'] }) as Promise<Errand>;
+    const updated = await this.errandRepo.findOne({ where: { id: errandId }, relations: ['user'] }) as Errand;
+    return this.stripCode(updated);
   }
 }

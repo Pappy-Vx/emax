@@ -103,6 +103,14 @@ export default function DashErrands() {
                   </div>
                   <div className="text-xs text-navy/50 mt-0.5 truncate">{e.fromAddress} → {e.toAddress}</div>
                   <div className="text-xs text-navy/40">{fmtDate(e.scheduledAt)}</div>
+                  {e.code && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-navy/40">Delivery code</span>
+                      <span className="font-mono font-black text-navy text-base tracking-widest bg-gold/20 px-2 py-0.5 rounded-lg">
+                        {e.code}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {e.status === 'completed' && (
