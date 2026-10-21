@@ -66,14 +66,22 @@ export class SubscriptionService {
   // ── Find active ─────────────────────────────────────────────────
 
   async findActive(userId: string): Promise<Subscription | null> {
+    // Return both active and paused — paused is still a live subscription.
     return this.subRepo.findOne({
-      where: { userId, status: SubscriptionStatus.ACTIVE },
+      where: [
+        { userId, status: SubscriptionStatus.ACTIVE },
+        { userId, status: SubscriptionStatus.PAUSED },
+      ],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findActiveOrThrow(userId: string): Promise<Subscription> {
-    const sub = await this.findActive(userId);
+    // Only an ACTIVE subscription can be paused/cancelled/etc. — paused cannot be paused again.
+    const sub = await this.subRepo.findOne({
+      where: { userId, status: SubscriptionStatus.ACTIVE },
+      order: { createdAt: 'DESC' },
+    });
     if (!sub) throw new NotFoundException('No active subscription found.');
     return sub;
   }
@@ -228,6 +236,45 @@ export class SubscriptionService {
     return this.subRepo.findOneByOrFail({ id: sub.id });
   }
 
+  // ── Pause / Resume ────────────────────────────────────────────────
+
+  async pause(userId: string): Promise<Subscription> {
+    const sub = await this.findActiveOrThrow(userId);
+    const pausedAt = new Date();
+    const resumeAt = new Date(pausedAt);
+    resumeAt.setDate(resumeAt.getDate() + 30);
+    await this.subRepo.update(sub.id, {
+      status:   SubscriptionStatus.PAUSED,
+      pausedAt,
+      resumeAt,
+    });
+    const user = await this.usersService.findById(userId).catch(() => null);
+    this.logger.log(`[${user?.email ?? userId}] subscription paused — auto-resumes ${resumeAt.toDateString()}`);
+    return this.subRepo.findOneByOrFail({ id: sub.id });
+  }
+
+  async resume(userId: string): Promise<Subscription> {
+    const sub = await this.subRepo.findOne({
+      where: { userId, status: SubscriptionStatus.PAUSED },
+      order: { createdAt: 'DESC' },
+    });
+    if (!sub) throw new NotFoundException('No paused subscription found.');
+
+    // Extend the period by the time it spent paused so the customer doesn't lose any days
+    const pausedMs = sub.pausedAt ? Date.now() - sub.pausedAt.getTime() : 0;
+    const newEnd = new Date(sub.currentPeriodEnd.getTime() + pausedMs);
+
+    await this.subRepo.update(sub.id, {
+      status:           SubscriptionStatus.ACTIVE,
+      pausedAt:         null,
+      resumeAt:         null,
+      currentPeriodEnd: newEnd,
+    });
+    const user = await this.usersService.findById(userId).catch(() => null);
+    this.logger.log(`[${user?.email ?? userId}] subscription resumed — new period end ${newEnd.toDateString()}`);
+    return this.subRepo.findOneByOrFail({ id: sub.id });
+  }
+
   // ── Toggle auto-renew ────────────────────────────────────────────
 
   async toggleAutoRenew(userId: string, autoRenew: boolean): Promise<Subscription> {
@@ -241,6 +288,16 @@ export class SubscriptionService {
   // ── Auto-renewal (called by scheduler) ─────────────────────────
 
   async processRenewals(): Promise<void> {
+    // Auto-resume any subscriptions whose 30-day pause has elapsed
+    const paused = await this.subRepo.find({
+      where: { status: SubscriptionStatus.PAUSED, resumeAt: LessThanOrEqual(new Date()) },
+      relations: ['user'],
+    });
+    for (const sub of paused) {
+      await this.resume(sub.userId);
+      this.logger.log(`Auto-resumed subscription ${sub.id} for ${sub.user?.email}`);
+    }
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
 

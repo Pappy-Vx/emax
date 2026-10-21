@@ -145,5 +145,50 @@ export class NotificationsService {
   handleSubscriptionExpiringSoon(p: NotificationPayload) { return this.send(p); }
 
   @OnEvent(NOTIFY.SUBSCRIPTION_RENEWAL_REMINDER)
-  handleSubscriptionRenewalReminder(p: NotificationPayload) { return this.send(p); }
+  async handleSubscriptionRenewalReminder(p: NotificationPayload): Promise<void> {
+    // Persist the in-app notification
+    const record = await this.repo.save(
+      this.repo.create({
+        userId:         p.userId,
+        recipientEmail: p.recipientEmail,
+        type:           p.type,
+        channel:        NotificationChannel.EMAIL,
+        status:         NotificationStatus.PENDING,
+        title:          p.title,
+        body:           p.body,
+        metadata:       p.metadata ? JSON.stringify(p.metadata) : null,
+        sentAt:         null,
+        failureReason:  null,
+        readAt:         null,
+      }),
+    );
+
+    // Use the rich branded email template instead of the plain wrapper
+    const meta = (p.metadata ?? {}) as Record<string, any>;
+    const amountCents = typeof meta['amountCents'] === 'number' ? meta['amountCents'] : 0;
+    const renewsAt    = meta['renewsAt'] ? new Date(meta['renewsAt'] as string) : new Date();
+    const planId      = (meta['planId'] as string) ?? '';
+
+    const priceFmt    = `$${(amountCents / 100).toFixed(2)}`;
+    const daysLeft    = Math.max(1, Math.ceil((renewsAt.getTime() - Date.now()) / 86_400_000));
+    const renewalDate = renewsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const billingCycle = planId.includes('yearly') ? 'yearly' : 'monthly';
+
+    try {
+      await this.mailService.sendSubscriptionRenewalReminder(p.recipientEmail, {
+        planName:     p.title.replace(/^Your /, '').replace(/ plan renews.*$/, ''),
+        priceFmt,
+        daysLeft,
+        renewalDate,
+        billingCycle,
+      });
+      record.status = NotificationStatus.SENT;
+      record.sentAt = new Date();
+    } catch (err) {
+      record.status        = NotificationStatus.FAILED;
+      record.failureReason = (err as Error).message;
+      this.logger.warn(`Renewal reminder email failed → ${p.recipientEmail}: ${(err as Error).message}`);
+    }
+    await this.repo.save(record);
+  }
 }

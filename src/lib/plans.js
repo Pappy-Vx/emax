@@ -1,6 +1,6 @@
-export const STORE       = 'emax_proto_v1';
-export const OPS_STORE   = 'emax_ops_v1';
-export const RIDER_STORE = 'emax_rider_v1';
+export const STORE        = 'emax_proto_v1';
+export const OPS_STORE    = 'emax_ops_v1';
+export const RUNNER_STORE = 'emax_runner_v1';
 
 function _load(key) {
   if (typeof window === 'undefined') return {};
@@ -13,10 +13,10 @@ function _save(key, patch) {
 
 export const loadStore      = ()       => _load(STORE);
 export const saveStore      = (patch)  => _save(STORE, patch);
-export const loadOpsStore   = ()       => _load(OPS_STORE);
-export const saveOpsStore   = (patch)  => _save(OPS_STORE, patch);
-export const loadRiderStore = ()       => _load(RIDER_STORE);
-export const saveRiderStore = (patch)  => _save(RIDER_STORE, patch);
+export const loadOpsStore    = ()       => _load(OPS_STORE);
+export const saveOpsStore    = (patch)  => _save(OPS_STORE, patch);
+export const loadRunnerStore = ()       => _load(RUNNER_STORE);
+export const saveRunnerStore = (patch)  => _save(RUNNER_STORE, patch);
 
 export const SINGLE_ERRAND_PRICE = 19.99;
 

@@ -104,11 +104,57 @@ export class OpsService {
     const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
     if (!errand.cancellationRequested) throw new BadRequestException('No pending cancellation request.');
+
+    // Unassign the runner and put the errand back into the scheduling queue —
+    // the customer's errand stays alive and gets reassigned to another runner.
     await this.errandRepo.update(id, {
-      status: 'cancelled',
-      cancellationRequested: false,
+      riderId:                   null,
+      riderAssignedAt:           null,
+      status:                    'scheduled',
+      cancellationRequested:     false,
+      cancellationRequestReason: null,
+      cancellationRequestedAt:   null,
     });
+
+    // Immediately try to assign to another available runner
+    const refreshed = await this.errandRepo.findOneBy({ id }) as Errand;
+    await this.tryAutoAssign(refreshed);
+
     return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
+  }
+
+  // Re-assign an errand to the least-loaded available runner (no business-hours gate —
+  // this is an admin action so it can happen at any time).
+  private async tryAutoAssign(errand: Errand): Promise<void> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+
+    const runners = await this.userRepo.find({ where: { role: 'runner', isDeleted: false } });
+    if (!runners.length) return;
+
+    const counts = await Promise.all(
+      runners.map(async (r) => {
+        const count = await this.errandRepo.count({
+          where: {
+            riderId:         r.id,
+            isDeleted:       false,
+            riderAssignedAt: Between(todayStart, todayEnd),
+            status:          Not('cancelled'),
+          },
+        });
+        return { runner: r, count };
+      }),
+    );
+
+    const available = counts.filter((c) => c.count < 3).sort((a, b) => a.count - b.count);
+    if (!available.length) return;
+
+    await this.errandRepo.update(errand.id, {
+      riderId:         available[0].runner.id,
+      riderAssignedAt: new Date(),
+    });
   }
 
   async denyCancellation(id: string): Promise<Errand> {

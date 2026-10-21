@@ -1,4 +1,4 @@
-import { loadStore, saveStore, loadOpsStore, saveOpsStore, loadRiderStore, saveRiderStore } from './plans';
+import { loadStore, saveStore, loadOpsStore, saveOpsStore, loadRunnerStore, saveRunnerStore } from './plans';
 import { api } from './api';
 
 // ── Store accessors ───────────────────────────────────────────────
@@ -19,18 +19,18 @@ export const getOpsUser    = () => loadOpsStore().user   ?? null;
 export const getOpsToken   = () => loadOpsStore().token  ?? null;
 export const opsLogout     = () => saveOpsStore({ user: null, token: null });
 
-export const getRiderUser  = () => loadRiderStore().user  ?? null;
-export const getRiderToken = () => loadRiderStore().token ?? null;
-export const riderLogout   = () => saveRiderStore({ user: null, token: null });
+export const getRunnerUser  = () => loadRunnerStore().user  ?? null;
+export const getRunnerToken = () => loadRunnerStore().token ?? null;
+export const runnerLogout   = () => saveRunnerStore({ user: null, token: null });
 
 export function applyOpsSession({ access_token, user }) {
   if (access_token) saveOpsStore({ token: access_token });
   if (user)         saveOpsStore({ user });
 }
 
-export function applyRiderSession({ access_token, user }) {
-  if (access_token) saveRiderStore({ token: access_token });
-  if (user)         saveRiderStore({ user });
+export function applyRunnerSession({ access_token, user }) {
+  if (access_token) saveRunnerStore({ token: access_token });
+  if (user)         saveRunnerStore({ user });
 }
 
 // ── Session aliases (used by DashAccount and other dashboard components) ─

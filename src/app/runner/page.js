@@ -2,8 +2,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function RiderRoot() {
+export default function RunnerRoot() {
   const router = useRouter();
-  useEffect(() => { router.replace('/rider/errands'); }, [router]);
+  useEffect(() => { router.replace('/runner/errands'); }, [router]);
   return null;
 }

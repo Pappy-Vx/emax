@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 export function proxy(request) {
   const { pathname } = request.nextUrl;
 
-  // Ops and rider portals are always accessible regardless of feature flag
-  if (pathname.startsWith('/ops') || pathname.startsWith('/rider')) {
+  // Ops and runner portals are always accessible regardless of feature flag
+  if (pathname.startsWith('/ops') || pathname.startsWith('/runner')) {
     return NextResponse.next();
   }
 
@@ -27,6 +27,6 @@ export const config = {
     '/dashboard/:path*',
     '/auth/google',
     '/ops/:path*',
-    '/rider/:path*',
+    '/runner/:path*',
   ],
 };

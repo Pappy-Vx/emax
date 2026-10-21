@@ -285,15 +285,19 @@ export class ErrandsService {
   }
 
   async autoAssignRider(errand: Errand): Promise<void> {
-    if (!this.isWithinBusinessHours()) {
+    const bypassHours = process.env.BYPASS_BUSINESS_HOURS === 'true';
+    if (!bypassHours && !this.isWithinBusinessHours()) {
       this.logger.log(
         `Errand ${errand.id} queued — outside business hours ` +
-        `(current hour: ${this.businessHour()}, window: 9–17 ET)`,
+        `(current hour: ${this.businessHour()}, window: 9–17 ET). ` +
+        `Set BYPASS_BUSINESS_HOURS=true to skip this check in dev.`,
       );
       return;
     }
 
-    const todayStart = new Date();
+    // Use ET midnight as the day boundary so the 3/day limit matches the business timezone.
+    const etNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Indiana/Indianapolis' }));
+    const todayStart = new Date(etNow);
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(todayStart);
     todayEnd.setDate(todayEnd.getDate() + 1);

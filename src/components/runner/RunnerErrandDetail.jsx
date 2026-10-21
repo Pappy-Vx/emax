@@ -15,7 +15,7 @@ function isTimeReached(scheduledAt) {
   return Date.now() >= new Date(scheduledAt).getTime() + 60_000;
 }
 
-export default function RiderErrandDetail({ errandId }) {
+export default function RunnerErrandDetail({ errandId }) {
   const router = useRouter();
   const [errand, setErrand]         = useState(null);
   const [loading, setLoading]       = useState(true);
@@ -35,7 +35,7 @@ export default function RiderErrandDetail({ errandId }) {
   const [cancelling, setCancelling]         = useState(false);
 
   useEffect(() => {
-    api.rider.errand(errandId)
+    api.runner.errand(errandId)
       .then((e) => {
         setErrand(e);
         setTimeReached(isTimeReached(e.scheduledAt));
@@ -63,7 +63,7 @@ export default function RiderErrandDetail({ errandId }) {
     const next = STATUS_FLOW[idx + 1];
     setUpdating(true);
     try {
-      const updated = await api.rider.updateStatus(errandId, next);
+      const updated = await api.runner.updateStatus(errandId, next);
       setErrand(updated);
     } catch (e) {
       alert(e.message);
@@ -78,7 +78,7 @@ export default function RiderErrandDetail({ errandId }) {
     setCodeErr('');
     setCompleting(true);
     try {
-      const updated = await api.rider.complete(errandId, code);
+      const updated = await api.runner.complete(errandId, code);
       setErrand(updated);
       setCode('');
     } catch (e) {
@@ -94,7 +94,7 @@ export default function RiderErrandDetail({ errandId }) {
     setCancelErr('');
     setCancelling(true);
     try {
-      const updated = await api.rider.requestCancellation(errandId, cancelReason.trim());
+      const updated = await api.runner.requestCancellation(errandId, cancelReason.trim());
       setErrand(updated);
       setShowCancelForm(false);
       setCancelReason('');

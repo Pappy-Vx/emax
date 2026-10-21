@@ -1,5 +1,5 @@
 /**
- * One-time seed script — creates the default admin and rider accounts.
+ * One-time seed script — creates the default admin and runner accounts.
  * Run once: npx ts-node -r tsconfig-paths/register src/seed-staff.ts
  *
  * Change passwords before deploying to production.
@@ -32,9 +32,9 @@ const STAFF = [
     role:     'admin',
   },
   {
-    name:     'Test Rider',
-    email:    'rider@emaxerrands.com',
-    password: 'RiderEmax2026!',
+    name:     'Test Runner',
+    email:    'runner@emaxerrands.com',
+    password: 'RunnerEmax2026!',
     role:     'runner',
   },
 ];

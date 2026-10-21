@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
-import { applyRiderSession, getRiderUser } from '@/lib/auth';
+import { applyRunnerSession, getRunnerUser } from '@/lib/auth';
 
-export default function RiderLogin() {
+export default function RunnerLogin() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,14 +17,14 @@ export default function RiderLogin() {
     setLoading(true);
     try {
       const res = await api.auth.login(email, password);
-      if (res.otpRequired) { setErr('2FA not supported for rider login.'); return; }
-      applyRiderSession(res);
-      const user = getRiderUser();
+      if (res.otpRequired) { setErr('2FA not supported for runner login.'); return; }
+      applyRunnerSession(res);
+      const user = getRunnerUser();
       if (user?.role !== 'runner') {
-        setErr('Access denied. Rider credentials required.');
+        setErr('Access denied. Runner credentials required.');
         return;
       }
-      router.replace('/rider/errands');
+      router.replace('/runner/errands');
     } catch (e) {
       setErr(e.message || 'Login failed.');
     } finally {
@@ -35,8 +35,8 @@ export default function RiderLogin() {
   return (
     <main className="min-h-screen bg-navy flex items-center justify-center px-5">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8">
-        <h1 className="font-display font-black text-navy text-2xl mb-1">Rider Portal</h1>
-        <p className="text-navy/50 text-sm mb-7">Sign in with your rider account</p>
+        <h1 className="font-display font-black text-navy text-2xl mb-1">Runner Portal</h1>
+        <p className="text-navy/50 text-sm mb-7">Sign in with your runner account</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>

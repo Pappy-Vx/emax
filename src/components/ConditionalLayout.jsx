@@ -14,7 +14,7 @@ export default function ConditionalLayout({ children }) {
     NO_CHROME.includes(pathname) ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/ops') ||
-    pathname.startsWith('/rider');
+    pathname.startsWith('/runner');
   return (
     <>
       {!hide && <Navbar />}

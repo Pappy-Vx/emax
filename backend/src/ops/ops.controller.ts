@@ -6,7 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { OpsService } from './ops.service';
-import { CreateRiderDto } from './dto/create-rider.dto';
+import { CreateRunnerDto } from './dto/create-runner.dto';
 import * as bcrypt from 'bcrypt';
 
 @Controller('ops')
@@ -60,7 +60,7 @@ export class OpsController {
     return this.ops.listCustomers({ page, pageSize, search, defaulted: defaultedBool, from, to });
   }
 
-  // ── Riders ──────────────────────────────────────────────────────
+  // ── Runners ─────────────────────────────────────────────────────
 
   @Get('riders')
   listRiders(
@@ -72,7 +72,7 @@ export class OpsController {
   }
 
   @Post('riders')
-  async createRider(@Body() dto: CreateRiderDto) {
+  async createRider(@Body() dto: CreateRunnerDto) {
     const passwordHash = await bcrypt.hash(dto.password, 12);
     return this.ops.createRider({ name: dto.name, email: dto.email, passwordHash });
   }

@@ -1,6 +1,6 @@
 import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class CreateRiderDto {
+export class CreateRunnerDto {
   @IsString()
   name: string;
 

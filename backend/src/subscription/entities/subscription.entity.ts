@@ -9,6 +9,7 @@ export enum BillingCycle {
 
 export enum SubscriptionStatus {
   ACTIVE    = 'active',
+  PAUSED    = 'paused',
   CANCELLED = 'cancelled',
   EXPIRED   = 'expired',
   PAST_DUE  = 'past_due',
@@ -60,4 +61,12 @@ export class Subscription extends BaseEntity {
   /** Set when the 3-day renewal reminder email is sent; cleared on each renewal so the next cycle gets a fresh reminder. */
   @Column({ type: 'datetime', nullable: true })
   renewalReminderSentAt: Date | null;
+
+  /** Set when the subscription is paused. Auto-resumes after 30 days. */
+  @Column({ type: 'datetime', nullable: true })
+  pausedAt: Date | null;
+
+  /** When a paused subscription will automatically resume. */
+  @Column({ type: 'datetime', nullable: true })
+  resumeAt: Date | null;
 }

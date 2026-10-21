@@ -49,12 +49,12 @@ export default function OpsRiders() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display font-black text-navy text-2xl">Riders</h2>
+        <h2 className="font-display font-black text-navy text-2xl">Runners</h2>
         <button
           onClick={() => setShowForm((s) => !s)}
           className="px-4 py-2 rounded-full bg-navy text-white text-sm font-semibold hover:bg-navy/90"
         >
-          {showForm ? 'Cancel' : '+ Add rider'}
+          {showForm ? 'Cancel' : '+ Add runner'}
         </button>
       </div>
 
@@ -97,7 +97,7 @@ export default function OpsRiders() {
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 text-xs text-gray-500 font-semibold uppercase tracking-wide">
-              <th className="px-4 py-3 text-left">Rider</th>
+              <th className="px-4 py-3 text-left">Runner</th>
               <th className="px-4 py-3 text-left">Errands today</th>
               <th className="px-4 py-3 text-left">Total completed</th>
               <th className="px-4 py-3 text-left">Daily limit</th>
@@ -108,7 +108,7 @@ export default function OpsRiders() {
               <tr><td colSpan={4} className="text-center py-10 text-gray-400">Loading…</td></tr>
             )}
             {!loading && result?.data?.length === 0 && (
-              <tr><td colSpan={4} className="text-center py-10 text-gray-400">No riders found.</td></tr>
+              <tr><td colSpan={4} className="text-center py-10 text-gray-400">No runners found.</td></tr>
             )}
             {!loading && result?.data?.map((r) => (
               <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">

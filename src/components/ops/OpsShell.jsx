@@ -7,7 +7,7 @@ import { getOpsUser, opsLogout } from '@/lib/auth';
 const NAV = [
   { id: 'errands',   label: 'Errands',   href: '/ops/errands' },
   { id: 'customers', label: 'Customers', href: '/ops/customers' },
-  { id: 'riders',    label: 'Riders',    href: '/ops/riders' },
+  { id: 'riders',    label: 'Runners',   href: '/ops/riders' },
 ];
 
 export default function OpsShell({ children, active }) {

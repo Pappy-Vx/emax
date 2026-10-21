@@ -13,6 +13,7 @@ const ICON_MAP = { Briefcase: Icons.Briefcase, Heart: Icons.Heart, Building: Ico
 
 const STATUS_STYLE = {
   active:    'bg-green-50 text-green-700',
+  paused:    'bg-sky-50 text-sky-700',
   cancelled: 'bg-red-50 text-red-500',
   expired:   'bg-navy/8 text-navy/50',
   past_due:  'bg-amber-50 text-amber-700',
@@ -56,6 +57,38 @@ function DowngradeBlockedModal({ onClose }) {
             className="flex-1 py-2.5 rounded-xl border border-navy/15 text-navy/60 text-sm hover:bg-navy/5 transition"
           >
             Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Pause confirmation ──────────────────────────────────────────────
+function PauseModal({ onConfirm, onClose, busy }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-navy/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
+        <h3 className="font-display font-bold text-navy text-lg">Pause subscription?</h3>
+        <p className="text-navy/60 text-sm">
+          Your plan will be paused for up to <strong>30 days</strong> and automatically resumes after that. Your period end date will be extended by the time it was paused — you won&apos;t lose any days.
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={busy}
+            className="flex-1 py-2.5 rounded-xl bg-sky-500 text-white font-semibold text-sm hover:bg-sky-600 transition disabled:opacity-50"
+          >
+            {busy ? 'Pausing…' : 'Yes, pause'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-navy/15 text-navy/60 text-sm hover:bg-navy/5 transition"
+          >
+            Keep active
           </button>
         </div>
       </div>
@@ -208,6 +241,7 @@ export default function DashSubscription() {
   const [cycle, setCycle]           = useState('monthly');
   const [showDowngrade, setShowDowngrade] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showPause, setShowPause]   = useState(false);
   const [busy, setBusy]             = useState(false);
   const [err, setErr]               = useState('');
 
@@ -266,6 +300,34 @@ export default function DashSubscription() {
       notify('Subscription cancelled. Active until ' + fmtDate(updated.currentPeriodEnd), 'warning');
     } catch (ex) {
       setErr(ex.message ?? 'Could not cancel.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ── Pause / Resume ─────────────────────────────────────────────────
+  const confirmPause = async () => {
+    setBusy(true);
+    try {
+      const updated = await api.subscription.pause();
+      setSub(updated);
+      setShowPause(false);
+      notify('Subscription paused. It will automatically resume in 30 days.', 'warning');
+    } catch (ex) {
+      setErr(ex.message ?? 'Could not pause subscription.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleResume = async () => {
+    setBusy(true);
+    try {
+      const updated = await api.subscription.resume();
+      setSub(updated);
+      notify('Subscription resumed.');
+    } catch (ex) {
+      setErr(ex.message ?? 'Could not resume subscription.');
     } finally {
       setBusy(false);
     }
@@ -370,17 +432,50 @@ export default function DashSubscription() {
             </div>
           )}
 
-          {/* Cancel */}
+          {/* Paused banner */}
+          {sub.status === 'paused' && (
+            <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 mb-3 flex items-start gap-3">
+              <span className="text-sky-500 mt-0.5">⏸</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-sky-800">Subscription paused</p>
+                <p className="text-xs text-sky-700 mt-0.5">
+                  Auto-resumes {sub.resumeAt ? fmtDate(sub.resumeAt) : 'in 30 days'}.
+                  Resume early at any time below.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleResume}
+                disabled={busy}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500 text-white text-xs font-semibold hover:bg-sky-600 transition disabled:opacity-50"
+              >
+                {busy ? '…' : 'Resume now'}
+              </button>
+            </div>
+          )}
+
+          {/* Pause */}
           {sub.status === 'active' && !sub.cancelAtPeriodEnd && (
             <div className="pt-3 border-t border-navy/8">
               <button
                 type="button"
-                onClick={() => setShowCancel(true)}
-                className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+                onClick={() => setShowPause(true)}
+                className="w-full py-2.5 rounded-xl border border-sky-200 text-sky-600 text-sm font-medium hover:bg-sky-50 transition mb-2"
               >
-                Cancel subscription
+                Pause subscription
               </button>
             </div>
+          )}
+
+          {/* Cancel */}
+          {sub.status === 'active' && !sub.cancelAtPeriodEnd && (
+            <button
+              type="button"
+              onClick={() => setShowCancel(true)}
+              className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition"
+            >
+              Cancel subscription
+            </button>
           )}
         </Card>
       )}
@@ -473,6 +568,14 @@ export default function DashSubscription() {
 
       {/* ── Modals ── */}
       {showDowngrade && <DowngradeBlockedModal onClose={() => setShowDowngrade(false)} />}
+
+      {showPause && (
+        <PauseModal
+          onConfirm={confirmPause}
+          onClose={() => setShowPause(false)}
+          busy={busy}
+        />
+      )}
 
       {showCancel && (
         <CancelModal

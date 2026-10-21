@@ -43,4 +43,16 @@ export class SubscriptionController {
   ) {
     return this.subscriptionService.toggleAutoRenew(user.id, autoRenew);
   }
+
+  /** PATCH /subscription/pause — pause the active subscription for up to 30 days */
+  @Patch('pause')
+  pause(@CurrentUser() user: { id: string }) {
+    return this.subscriptionService.pause(user.id);
+  }
+
+  /** PATCH /subscription/resume — manually resume a paused subscription early */
+  @Patch('resume')
+  resume(@CurrentUser() user: { id: string }) {
+    return this.subscriptionService.resume(user.id);
+  }
 }

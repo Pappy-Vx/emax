@@ -14,9 +14,9 @@ function _readToken(key) {
 }
 const getStoredToken  = () => _readToken('emax_proto_v1');
 const getOpsToken     = () => _readToken('emax_ops_v1');
-const getRiderToken   = () => _readToken('emax_rider_v1');
+const getRunnerToken  = () => _readToken('emax_runner_v1');
 
-async function apiFetch(path, { method = 'GET', body, auth = false, authOps = false, authRider = false } = {}) {
+async function apiFetch(path, { method = 'GET', body, auth = false, authOps = false, authRunner = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
 
   if (auth) {
@@ -27,8 +27,8 @@ async function apiFetch(path, { method = 'GET', body, auth = false, authOps = fa
     const token = getOpsToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  if (authRider) {
-    const token = getRiderToken();
+  if (authRunner) {
+    const token = getRunnerToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
 
@@ -170,6 +170,12 @@ export const api = {
     /** PATCH /subscription/autorenew */
     toggleAutoRenew: (autoRenew) =>
       apiFetch('/subscription/autorenew', { method: 'PATCH', body: { autoRenew }, auth: true }),
+
+    /** PATCH /subscription/pause — pause active subscription for 30 days */
+    pause: () => apiFetch('/subscription/pause', { method: 'PATCH', auth: true }),
+
+    /** PATCH /subscription/resume — resume a paused subscription early */
+    resume: () => apiFetch('/subscription/resume', { method: 'PATCH', auth: true }),
   },
 
   wallet: {
@@ -254,14 +260,14 @@ export const api = {
       apiFetch(`/ops/errands/${id}/cancellation-deny`, { method: 'PATCH', authOps: true }),
   },
 
-  rider: {
-    errands: () => apiFetch('/rider/errands', { authRider: true }),
-    errand:  (id) => apiFetch(`/rider/errands/${id}`, { authRider: true }),
+  runner: {
+    errands: () => apiFetch('/runner/errands', { authRunner: true }),
+    errand:  (id) => apiFetch(`/runner/errands/${id}`, { authRunner: true }),
     complete: (id, code) =>
-      apiFetch(`/rider/errands/${id}/complete`, { method: 'POST', body: { code }, authRider: true }),
+      apiFetch(`/runner/errands/${id}/complete`, { method: 'POST', body: { code }, authRunner: true }),
     updateStatus: (id, status) =>
-      apiFetch(`/rider/errands/${id}/status`, { method: 'PATCH', body: { status }, authRider: true }),
+      apiFetch(`/runner/errands/${id}/status`, { method: 'PATCH', body: { status }, authRunner: true }),
     requestCancellation: (id, reason) =>
-      apiFetch(`/rider/errands/${id}/cancel-request`, { method: 'POST', body: { reason }, authRider: true }),
+      apiFetch(`/runner/errands/${id}/cancel-request`, { method: 'POST', body: { reason }, authRunner: true }),
   },
 };

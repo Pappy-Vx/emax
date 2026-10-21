@@ -99,6 +99,55 @@ export class MailService implements OnModuleInit {
     });
   }
 
+  async sendSubscriptionRenewalReminder(to: string, opts: {
+    planName: string;
+    priceFmt: string;
+    daysLeft: number;
+    renewalDate: string;
+    billingCycle: string;
+    cancelUrl?: string;
+  }): Promise<void> {
+    const { planName, priceFmt, daysLeft, renewalDate, billingCycle } = opts;
+    const per = billingCycle === 'yearly' ? 'year' : 'month';
+    await this.send({
+      to,
+      subject: `Your ${planName} subscription renews in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;background:#ffffff;">
+          <div style="padding:28px 28px 0;">
+            <span style="display:inline-block;padding:6px 12px;background:#f5c842;color:#0d2137;font-weight:700;font-size:13px;border-radius:6px;letter-spacing:0.06em;">eMax Errands &amp; More</span>
+          </div>
+          <div style="padding:28px 28px 0;">
+            <h1 style="color:#0d2137;font-size:26px;font-weight:800;margin:0 0 16px;line-height:1.25;">
+              Your ${planName} subscription renews for ${priceFmt}/${per} in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}
+            </h1>
+            <p style="color:#4a5568;font-size:15px;line-height:1.6;margin:0 0 20px;">
+              You're set to auto-renew your eMax Errands &amp; More subscription. Starting <strong>${renewalDate}</strong>, you'll continue to enjoy priority errand scheduling, loyalty rewards, and all your plan benefits for ${priceFmt}/${per}.
+            </p>
+          </div>
+          <div style="margin:24px 28px;background:#f7f8fa;border-radius:12px;padding:20px;">
+            <p style="font-size:13px;font-weight:700;color:#0d2137;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 10px;">Your plan</p>
+            <p style="font-size:15px;font-weight:600;color:#0d2137;margin:0 0 4px;">${planName} · ${billingCycle === 'yearly' ? 'Annual' : 'Monthly'} billing</p>
+            <p style="font-size:14px;color:#718096;margin:0;">Renews on ${renewalDate} at ${priceFmt}/${per}</p>
+          </div>
+          <div style="padding:0 28px 8px;">
+            <p style="color:#718096;font-size:13px;line-height:1.6;margin:0 0 20px;">
+              If you'd like to cancel before the renewal date, you can do so anytime from your subscription settings. Your plan will remain active through <strong>${renewalDate}</strong>.
+            </p>
+            <a href="https://emaxerrands.com/dashboard/subscription" style="display:inline-block;padding:13px 26px;background:#0d2137;color:#f5c842;font-weight:700;font-size:14px;text-decoration:none;border-radius:8px;margin-bottom:24px;">
+              Manage subscription
+            </a>
+          </div>
+          <div style="border-top:1px solid #edf2f7;padding:20px 28px;">
+            <p style="color:#a0aec0;font-size:12px;margin:0;">
+              You received this because you have an active eMax Errands &amp; More subscription. Questions? Reply to this email or visit <a href="https://emaxerrands.com" style="color:#0d2137;">emaxerrands.com</a>.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+  }
+
   async sendErrandUpdate(to: string, errandType: string, status: string): Promise<void> {
     const messages: Record<string, string> = {
       confirmed:    'Your errand has been confirmed and a runner has been assigned.',

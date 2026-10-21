@@ -2,16 +2,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getRiderUser, riderLogout } from '@/lib/auth';
+import { getRunnerUser, runnerLogout } from '@/lib/auth';
 
-export default function RiderShell({ children }) {
+export default function RunnerShell({ children }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const u = getRiderUser();
+    const u = getRunnerUser();
     if (!u || u.role !== 'runner') {
-      router.replace('/rider/login');
+      router.replace('/runner/login');
     } else {
       setUser(u);
     }
@@ -24,13 +24,13 @@ export default function RiderShell({ children }) {
       {/* Top bar */}
       <header className="bg-navy text-white px-5 py-4 flex items-center justify-between">
         <div>
-          <p className="font-display font-black text-base">eMax Rider</p>
+          <p className="font-display font-black text-base">eMax Runner</p>
           <p className="text-xs text-white/50">{user.name}</p>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/rider/errands" className="text-white/70 hover:text-white text-sm">My Errands</Link>
+          <Link href="/runner/errands" className="text-white/70 hover:text-white text-sm">My Errands</Link>
           <button
-            onClick={() => { riderLogout(); router.replace('/rider/login'); }}
+            onClick={() => { runnerLogout(); router.replace('/runner/login'); }}
             className="text-white/50 hover:text-white text-sm"
           >
             Sign out

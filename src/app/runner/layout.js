@@ -1,8 +1,8 @@
 export const metadata = {
-  title: 'Rider Portal | eMax Errands',
+  title: 'Runner Portal | eMax Errands',
   robots: { index: false, follow: false },
 };
 
-export default function RiderLayout({ children }) {
+export default function RunnerLayout({ children }) {
   return children;
 }

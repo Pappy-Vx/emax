@@ -52,7 +52,7 @@ function ActiveTab({ errands, router }) {
   return (
     <div className="flex flex-col gap-3">
       {active.map((e) => (
-        <ErrandCard key={e.id} e={e} onClick={() => router.push(`/rider/errands/${e.id}`)} />
+        <ErrandCard key={e.id} e={e} onClick={() => router.push(`/runner/errands/${e.id}`)} />
       ))}
     </div>
   );
@@ -83,7 +83,7 @@ function HistoryTab({ errands, router }) {
           </h3>
           <div className="flex flex-col gap-3">
             {completed.map((e) => (
-              <ErrandCard key={e.id} e={e} onClick={() => router.push(`/rider/errands/${e.id}`)} />
+              <ErrandCard key={e.id} e={e} onClick={() => router.push(`/runner/errands/${e.id}`)} />
             ))}
           </div>
         </div>
@@ -95,7 +95,7 @@ function HistoryTab({ errands, router }) {
           </h3>
           <div className="flex flex-col gap-3">
             {cancelled.map((e) => (
-              <ErrandCard key={e.id} e={e} onClick={() => router.push(`/rider/errands/${e.id}`)} />
+              <ErrandCard key={e.id} e={e} onClick={() => router.push(`/runner/errands/${e.id}`)} />
             ))}
           </div>
         </div>
@@ -110,19 +110,19 @@ function HelpDeskTab() {
   const faqs = [
     {
       q: 'What if the customer gives me the wrong code?',
-      a: 'Ask the customer to check their confirmation email for the 4-digit code. If they can\'t find it, contact the ops team — an admin can manually override and complete the errand on your behalf.',
+      a: "Ask the customer to check their confirmation email for the 4-digit code. If they can't find it, contact the ops team — an admin can manually override and complete the errand on your behalf.",
     },
     {
-      q: 'What do I do if I can\'t reach the pickup location?',
-      a: 'Call or message the customer using the contact info on the errand detail page. If you\'re unable to pick up, contact ops immediately so the errand can be reassigned. Do not cancel without talking to ops first.',
+      q: "What do I do if I can't reach the pickup location?",
+      a: "Call or message the customer using the contact info on the errand detail page. If you're unable to pick up, contact ops immediately so the errand can be reassigned. Do not cancel without talking to ops first.",
     },
     {
       q: 'My errand is still "scheduled" — when should I confirm it?',
       a: 'Mark it as "Confirmed" once you\'ve acknowledged the errand and are planning to fulfill it. Mark "Picked Up" once you\'ve retrieved the item/package. Then "On the Way" when you\'re heading to the delivery address.',
     },
     {
-      q: 'What if the customer isn\'t at the delivery address?',
-      a: 'Wait a reasonable time and attempt to call/message. If you\'re unable to complete the delivery, contact ops before leaving the address. Do not mark as complete if delivery wasn\'t made.',
+      q: "What if the customer isn't at the delivery address?",
+      a: "Wait a reasonable time and attempt to call/message. If you're unable to complete the delivery, contact ops before leaving the address. Do not mark as complete if delivery wasn't made.",
     },
     {
       q: 'How are errands assigned to me?',
@@ -159,10 +159,10 @@ function HelpDeskTab() {
         <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-4">Delivery flow</p>
         <ol className="space-y-3">
           {[
-            ['Confirm', 'Acknowledge you\'ve received the errand'],
+            ['Confirm', "Acknowledge you've received the errand"],
             ['Pick Up', 'Arrive at the pickup address and collect the item'],
-            ['On the Way', 'You\'re en route to the delivery address'],
-            ['Complete', 'Ask the customer for their 4-digit code to confirm delivery'],
+            ['On the Way', "You're en route to the delivery address"],
+            ['Complete', "Ask the customer for their 4-digit code to confirm delivery"],
           ].map(([step, desc], i) => (
             <li key={step} className="flex gap-3 items-start">
               <span className="shrink-0 w-6 h-6 rounded-full bg-navy text-white text-xs font-bold flex items-center justify-center mt-0.5">
@@ -201,7 +201,7 @@ function HelpDeskTab() {
   );
 }
 
-export default function RiderErrands() {
+export default function RunnerErrands() {
   const router = useRouter();
   const [errands, setErrands] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -209,7 +209,7 @@ export default function RiderErrands() {
   const [tab, setTab]         = useState('active');
 
   useEffect(() => {
-    api.rider.errands()
+    api.runner.errands()
       .then(setErrands)
       .catch((e) => setErr(e.message))
       .finally(() => setLoading(false));

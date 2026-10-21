@@ -18,7 +18,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { OpsModule } from './ops/ops.module';
-import { RiderModule } from './rider/rider.module';
+import { RunnerModule } from './runner/runner.module';
 
 @Module({
   imports: [
@@ -58,7 +58,7 @@ import { RiderModule } from './rider/rider.module';
     SubscriptionModule,
     CheckoutModule,
     OpsModule,
-    RiderModule,
+    RunnerModule,
     FeatureFlagsModule,
     MailModule,
     NotificationModule,

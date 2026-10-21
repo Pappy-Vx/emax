@@ -7,14 +7,14 @@ import { Errand } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
 
 @Injectable()
-export class RiderService {
+export class RunnerService {
   constructor(
     @InjectRepository(Errand) private readonly errandRepo: Repository<Errand>,
     @InjectRepository(User)   private readonly userRepo: Repository<User>,
   ) {}
 
-  // Remove code from any errand object before returning to a rider — the customer
-  // gives it verbally at delivery; the rider must never see it in advance.
+  // Remove code from any errand object before returning to a runner — the customer
+  // gives it verbally at delivery; the runner must never see it in advance.
   private stripCode(errand: Errand): Errand {
     const safe = { ...errand } as any;
     delete safe.code;
@@ -31,29 +31,29 @@ export class RiderService {
     return Date.now() >= new Date(errand.scheduledAt).getTime() + 60_000;
   }
 
-  async getMyErrands(riderId: string): Promise<Errand[]> {
+  async getMyErrands(runnerId: string): Promise<Errand[]> {
     const errands = await this.errandRepo.find({
-      where:     { riderId, isDeleted: false },
+      where:     { riderId: runnerId, isDeleted: false },
       order:     { riderAssignedAt: 'DESC' },
       relations: ['user'],
     });
     return this.stripCodeMany(errands);
   }
 
-  async getErrandDetail(riderId: string, errandId: string): Promise<Errand & { customer: User }> {
+  async getErrandDetail(runnerId: string, errandId: string): Promise<Errand & { customer: User }> {
     const errand = await this.errandRepo.findOne({
       where:     { id: errandId, isDeleted: false },
       relations: ['user'],
     });
     if (!errand) throw new NotFoundException('Errand not found.');
-    if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
     return this.stripCode(errand) as Errand & { customer: User };
   }
 
-  async completeErrand(riderId: string, errandId: string, code: string): Promise<Errand> {
+  async completeErrand(runnerId: string, errandId: string, code: string): Promise<Errand> {
     const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
-    if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
     if (['completed', 'cancelled'].includes(errand.status)) {
       throw new BadRequestException('Errand is already finalised.');
     }
@@ -75,10 +75,10 @@ export class RiderService {
     return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
   }
 
-  async updateStatus(riderId: string, errandId: string, status: 'confirmed' | 'picked-up' | 'on-the-way'): Promise<Errand> {
+  async updateStatus(runnerId: string, errandId: string, status: 'confirmed' | 'picked-up' | 'on-the-way'): Promise<Errand> {
     const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
-    if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
     if (!this.isScheduledTimeReached(errand)) {
       const scheduled = new Date(errand.scheduledAt).toLocaleString('en-US', {
         weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
@@ -94,10 +94,10 @@ export class RiderService {
     return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
   }
 
-  async requestCancellation(riderId: string, errandId: string, reason: string): Promise<Errand> {
+  async requestCancellation(runnerId: string, errandId: string, reason: string): Promise<Errand> {
     const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
-    if (errand.riderId !== riderId) throw new ForbiddenException('Not your errand.');
+    if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
     if (['completed', 'cancelled'].includes(errand.status)) {
       throw new BadRequestException('This errand is already finalised.');
     }
