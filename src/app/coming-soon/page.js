@@ -4,6 +4,7 @@ import Image from 'next/image';
 export const metadata = {
   title: 'Coming Soon | eMax Errands & More',
   description: 'This feature is on its way. Stay tuned — eMax Errands & More is getting even better.',
+  robots: { index: false, follow: false },
 };
 
 export default function ComingSoonPage() {
