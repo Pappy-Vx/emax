@@ -37,7 +37,7 @@ const services = [
   { icon: 'Doc',      title: 'Document Delivery',       desc: 'Time-sensitive paperwork hand-delivered across Columbus the same day.' },
   { icon: 'Mail',     title: 'Post Office Runs',        desc: 'Drop-offs, certified mail, packages, we\'ll stand in line so you can keep moving.' },
   { icon: 'Book',     title: 'Library Returns',         desc: 'Avoid late fees. We\'ll return your books and pick up your holds.' },
-  { icon: 'Box',      title: 'Forgotten Item Delivery', desc: 'Left it at home? At the office? We\'ll grab it and bring it where you are.' },
+  { icon: 'Pen',      title: 'Mobile Notary',           desc: 'Need a document notarized? We come to your home, office, or a convenient meeting spot.' },
   { icon: 'Calendar', title: 'Event Errand Support',    desc: 'Full-day support for weddings, parties, and gatherings, your behind-the-scenes runner.' },
   { icon: 'Sparkle',  title: 'Custom Errands',          desc: 'If it needs doing and it\'s legal, just ask. We\'re here to help.' },
 ];
@@ -115,7 +115,7 @@ const faqs = [
   },
   {
     q: 'What delivery and errand services do you offer?',
-    a: 'Pharmacy pickups, package delivery, grocery delivery, store returns, post office/shipping runs, document delivery, library returns, forgotten item delivery, event errand support, DIY gift creation plus delivery, and your custom errands across Columbus, Indiana and environs.',
+    a: 'Pharmacy pickups, package delivery, grocery delivery, store returns, post office/shipping runs, document delivery, mobile notary, library returns, event errand support, DIY gift creation plus delivery, and your custom errands across Columbus, Indiana and environs.',
   },
   {
     q: 'Are your delivery services available on weekends?',
@@ -240,7 +240,7 @@ export default function Landing() {
             <div className="marquee-track flex items-center gap-12 whitespace-nowrap text-white/40 font-display font-semibold text-xl tracking-tight">
               {[0, 1].map((k) => (
                 <span key={k} className="flex items-center gap-12">
-                  {['Pharmacy Pickup', 'Store Returns', 'Document Delivery', 'Post Office Runs', 'Library Returns', 'Forgotten Items', 'Event Support', 'Custom Errands'].map((w, i) => (
+                  {['Pharmacy Pickup', 'Store Returns', 'Document Delivery', 'Post Office Runs', 'Library Returns', 'Mobile Notary', 'Event Support', 'Custom Errands'].map((w, i) => (
                     <span key={i} className="flex items-center gap-12">
                       <span>{w}</span>
                       <span className="text-gold/70">✱</span>

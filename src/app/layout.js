@@ -77,7 +77,10 @@ export const metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
+  '@id': 'https://emaxerrands.com/#business',
   name: 'eMax Errands & More',
+  slogan: 'Making life easier in Columbus, Indiana',
+  knowsAbout: ['Errand service', 'Local delivery', 'Same-day delivery', 'Prescription pickup', 'Store returns', 'Mobile notary', 'Document delivery', 'Senior errand assistance'],
   alternateName: 'eMax Errands',
   description:
     'Local delivery and errand service in Columbus, Indiana. Same-day package delivery, pharmacy pickup, grocery runs, store returns, document delivery, and custom errands across Columbus and surrounding Indiana cities.',
@@ -151,46 +154,14 @@ const jsonLd = {
   ],
 };
 
-const faqJsonLd = {
+const websiteJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'How much does eMax Errands cost?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Pricing depends on the distance and wait time. Local errands start from $9.99. Call or text (812) 565-9585 for a quick, no-obligation quote — no commitment required.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'What areas in Columbus, Indiana do you serve?',
-      acceptedAnswer: { '@type': 'Answer', text: 'We serve all of Columbus, Indiana and surrounding Bartholomew, Johnson, Jackson, Jennings, Decatur, Shelby and Brown Counties. We also extensively cover Greenwood, Edinburgh, Nashville, Bloomington, and Seymour, Indiana.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'Can you do same-day delivery in Columbus Indiana?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Yes. Same-day delivery in Columbus, Indiana is one of our most popular services. Call or text (812) 565-9585 and we will confirm pickup and delivery for the same day. We also do scheduled recurring errands at very affordable prices.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'How quickly can you complete a delivery or errand?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Most errands are completed same day. For urgent requests, we often respond within 5–20 minutes of your call or text. Reach us at (812) 565-9585 to confirm availability.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'Do I need to download an app to book a delivery?',
-      acceptedAnswer: { '@type': 'Answer', text: 'No app required. Just call or text (812) 565-9585 and a real person will handle everything. No accounts, no downloads — just dependable local service.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'What delivery and errand services do you offer in Columbus Indiana?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Pharmacy pickups, package delivery, grocery delivery, store returns, post office/shipping runs, document delivery, library returns, forgotten item delivery, event errand support, DIY gift creation plus delivery, and custom errands across Columbus, Indiana and environs.' },
-    },
-    {
-      '@type': 'Question',
-      name: 'Are your delivery services available on weekends?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Yes. We are available Monday through Friday 8 AM to 5 PM and Saturday 10 AM to 2 PM. Contact us for special availability outside those hours.' },
-    },
-  ],
+  '@type': 'WebSite',
+  '@id': 'https://emaxerrands.com/#website',
+  name: 'eMax Errands & More',
+  alternateName: 'eMax Errands',
+  url: 'https://emaxerrands.com',
+  publisher: { '@id': 'https://emaxerrands.com/#business' },
 };
 
 export default function RootLayout({ children }) {
@@ -203,7 +174,7 @@ export default function RootLayout({ children }) {
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <ConditionalLayout>
           {children}

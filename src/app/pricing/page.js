@@ -1,7 +1,7 @@
 import PricingPage from '@/components/PricingPage';
 
 export const metadata = {
-  title: 'Plans & Pricing | eMax Errands & More — Columbus, Indiana',
+  title: { absolute: 'Plans & Pricing | eMax Errands & More — Columbus, Indiana' },
   description:
     'Simple, affordable errand service plans in Columbus, Indiana. Monthly subscriptions from $83.99/mo (5 errands) or pay per errand from $19.99. Same-day scheduling, pharmacy pickups, document delivery & more. No app required.',
   keywords: [

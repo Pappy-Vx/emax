@@ -1,7 +1,7 @@
 import FaqPage from '@/components/FaqPage';
 
 export const metadata = {
-  title: 'FAQ, Policies & Terms | eMax Errands & More',
+  title: { absolute: 'FAQ, Policies & Terms | eMax Errands & More' },
   description:
     'Frequently asked questions about eMax Errands & More — pricing, service area, same-day delivery, response times, and how our Columbus, Indiana errand service works. No app required.',
   keywords: [

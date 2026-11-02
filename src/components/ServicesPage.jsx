@@ -13,7 +13,7 @@ const CATEGORIES = [
     icon: 'Box',
     name: 'Delivery & Drop-Off',
     desc: 'Get items where they need to go without the detour.',
-    services: ['Forgotten Item Delivery', 'Document Pickup/Delivery', 'Activity Gear Delivery', 'Appointment Item Delivery', 'Donation Drop-off'],
+    services: ['Mobile Notary', 'Document Pickup/Delivery', 'Activity Gear Delivery', 'Appointment Item Delivery', 'Donation Drop-off'],
   },
   {
     icon: 'Mail',

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }) {
   if (!post) return {};
 
   return {
-    title: post.seo.metaTitle,
+    title: { absolute: post.seo.metaTitle },
     description: post.seo.metaDescription,
     keywords: post.seo.keywords.join(', '),
     alternates: {

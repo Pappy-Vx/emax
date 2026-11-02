@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useReveal, GoldButton, PHONE, TEL, SMS } from './shared';
 import Icons from './icons';
 
-export default function ServicePage({ service }) {
+export default function ServicePage({ service, related = [] }) {
   useReveal();
 
   return (
@@ -104,6 +104,41 @@ export default function ServicePage({ service }) {
         </div>
       </section>
 
+      {service.comparison && (
+        <section className="bg-white pb-20 sm:pb-28">
+          <div className="max-w-4xl mx-auto px-5 sm:px-8">
+            <div className="reveal mb-8">
+              <div className="text-xs uppercase tracking-[0.22em] text-navy/55 font-semibold mb-4">Compare</div>
+              <h2 className="font-display font-black text-[28px] sm:text-[36px] leading-[1.1] text-navy">
+                eMax vs. other {service.name.toLowerCase()} options in Columbus, Indiana
+              </h2>
+            </div>
+            <div className="reveal overflow-x-auto rounded-2xl border border-navy/10">
+              <table className="w-full min-w-[560px] text-left text-[14.5px]">
+                <thead className="bg-navy text-white">
+                  <tr>
+                    <th scope="col" className="px-5 py-4 font-semibold"><span className="sr-only">Feature</span></th>
+                    {service.comparison.columns.map((c, i) => (
+                      <th key={c} scope="col" className={`px-5 py-4 font-semibold ${i === 0 ? 'text-gold' : ''}`}>{c}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {service.comparison.rows.map((r) => (
+                    <tr key={r.label} className="border-t border-navy/8 odd:bg-stone/60">
+                      <th scope="row" className="px-5 py-4 font-semibold text-navy">{r.label}</th>
+                      {r.values.map((v, i) => (
+                        <td key={i} className={`px-5 py-4 ${i === 0 ? 'font-semibold text-navy' : 'text-navy/65'}`}>{v}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ── How it works ── */}
       <section className="bg-cream py-20 sm:py-28">
         <div className="max-w-4xl mx-auto px-5 sm:px-8">
@@ -157,6 +192,31 @@ export default function ServicePage({ service }) {
           </div>
         </div>
       </section>
+
+      {related.length > 0 && (
+        <section className="bg-cream py-16 sm:py-20">
+          <div className="max-w-4xl mx-auto px-5 sm:px-8">
+            <h2 className="font-display font-black text-[26px] sm:text-[32px] leading-[1.1] text-navy mb-8">
+              More services in Columbus, Indiana
+            </h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  href={`/services/${r.slug}`}
+                  className="group flex items-center justify-between gap-4 bg-white rounded-2xl px-5 py-4 border border-navy/8 hover:border-gold/50 transition"
+                >
+                  <span>
+                    <span className="block font-display font-bold text-navy">{r.name}</span>
+                    <span className="block text-[13.5px] text-navy/55 mt-0.5">{r.tagline}</span>
+                  </span>
+                  <Icons.Arrow size={16} stroke={2.2} className="text-gold shrink-0 group-hover:translate-x-0.5 transition" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA ── */}
       <section className="bg-navy-deep text-white py-20 sm:py-24 relative overflow-hidden">

@@ -1,7 +1,7 @@
 import ServicesPage from '@/components/ServicesPage';
 
 export const metadata = {
-  title: 'Delivery & Errand Services in Columbus Indiana | eMax Errands & More',
+  title: { absolute: 'Delivery & Errand Services in Columbus Indiana | eMax Errands & More' },
   description:
     'Same-day delivery and errand services in Columbus, Indiana — package delivery, pharmacy pickup, grocery runs, store returns, document delivery, business errands, and event support. Call or text (812) 565-9585, no app required.',
   keywords: [

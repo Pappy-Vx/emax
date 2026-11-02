@@ -29,7 +29,9 @@ export default function Footer() {
           <div className="text-xs uppercase tracking-[0.18em] text-gold font-semibold mb-4">Quick Links</div>
           <ul className="space-y-3 text-[15px]">
             <li><Link href="/" className="hover:text-gold transition">Home</Link></li>
-            <li><Link href="/#services" className="hover:text-gold transition">Services</Link></li>
+            <li><Link href="/services" className="hover:text-gold transition">Services</Link></li>
+            <li><Link href="/services/errand-service" className="hover:text-gold transition">Errand Service Columbus IN</Link></li>
+            <li><Link href="/services/delivery-service" className="hover:text-gold transition">Delivery Service Columbus IN</Link></li>
             {FLAGS.pricing && <li><Link href="/pricing" className="hover:text-gold transition">Pricing</Link></li>}
             <li><Link href="/#why" className="hover:text-gold transition">Why e<sup className="font-black" style={{ verticalAlign: 'super', fontSize: '0.55em' }}>max</sup></Link></li>
             <li><Link href="/faq" className="hover:text-gold transition">FAQ &amp; Policies</Link></li>

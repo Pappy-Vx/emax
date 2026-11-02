@@ -10,7 +10,7 @@ const SERVICES = [
   { label: 'Same-Day Delivery',  href: '/services/same-day-delivery' },
   { label: 'Pharmacy Pickup',    href: '/services/pharmacy-pickup' },
   { label: 'Store Returns',      href: '/services/store-returns' },
-  { label: 'Document Delivery',  href: '/services/document-delivery' },
+  { label: 'Mobile Notary',      href: '/services/mobile-notary' },
   { label: 'Post Office Runs',   href: '/services/post-office-runs' },
 ];
 
@@ -34,7 +34,7 @@ function ServicesDropdown({ open, onClose }) {
         onClick={onClose}
         className="flex items-center gap-1 px-4 py-2.5 text-[14px] font-semibold text-navy hover:bg-navy/4 transition"
       >
-        All services
+        Service Categories
         <Icons.Arrow size={13} stroke={2.2} className="text-gold" />
       </Link>
     </div>
@@ -216,7 +216,7 @@ export default function Navbar() {
                   className="flex items-center gap-1.5 px-3 py-2.5 text-[14px] font-semibold text-navy rounded-xl hover:bg-navy/4 transition"
                 >
                   <Icons.Arrow size={13} stroke={2.2} className="text-gold" />
-                  All services
+                  Service Categories
                 </Link>
               </div>
             </div>

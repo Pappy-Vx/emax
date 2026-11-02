@@ -5,7 +5,7 @@ import { GoldButton } from '@/components/shared';
 import BlogReveal from '@/components/BlogReveal';
 
 export const metadata = {
-  title: 'Delivery & Errand Tips for Columbus Indiana | eMax Errands & More Blog',
+  title: { absolute: 'Delivery & Errand Tips for Columbus Indiana | eMax Errands & More Blog' },
   description:
     'Practical delivery and errand tips, time-saving advice, and community stories from eMax Errands & More — Columbus Indiana\'s local delivery and errand service.',
   keywords: [

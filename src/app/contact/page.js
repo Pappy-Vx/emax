@@ -1,7 +1,7 @@
 import Contact from '@/components/Contact';
 
 export const metadata = {
-  title: 'Book a Delivery or Errand in Columbus Indiana | eMax Errands & More',
+  title: { absolute: 'Book a Delivery or Errand in Columbus Indiana | eMax Errands & More' },
   description:
     'Book a local delivery or errand in Columbus, Indiana. Call or text (812) 565-9585 to schedule same-day package delivery, pharmacy pickup, grocery runs, and more. No app required.',
   keywords: [

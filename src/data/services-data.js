@@ -1,4 +1,84 @@
 export const SERVICES_DATA = {
+  'errand-service': {
+    slug: 'errand-service',
+    name: 'Errand Service',
+    headline: 'Errand Service in Columbus, Indiana',
+    tagline: 'A local errand runner you book with one call or text.',
+    heroDesc: 'eMax Errands & More is a locally owned errand service in Columbus, Indiana. We handle pharmacy pickups, store returns, post office runs, grocery pickups, mobile notary visits and custom errands across Bartholomew County, booked by call or text with no app required.',
+    metaTitle: 'Errand Service in Columbus, Indiana | Local Errand Runner | eMax Errands',
+    metaDesc: 'Locally owned errand service in Columbus, Indiana. Pharmacy pickups, store returns, post office runs, grocery pickups and custom errands, often same day. No app required. Call or text (812) 565-9585.',
+    keywords: ['errand service Columbus Indiana', 'errand runner Columbus Indiana', 'personal errand service Columbus IN', 'local errand service near me Columbus Indiana', 'hire someone to run errands Columbus Indiana', 'senior errand service Columbus Indiana'],
+    whatIs: 'An errand service is a local business you hire to run errands on your behalf: picking up prescriptions, returning store items, dropping off packages, collecting groceries, or any other task that needs a trip across town. eMax Errands & More is based in Columbus, Indiana (not Columbus, Ohio) and serves Columbus plus Greenwood, Edinburgh, Seymour, Nashville and Bloomington. Unlike app marketplaces, you book by calling or texting (812) 565-9585 and a real local person confirms your errand in minutes.',
+    facts: [
+      { label: 'Based in', value: 'Columbus, Indiana' },
+      { label: 'Booking', value: 'Call or text, no app' },
+      { label: 'Hours', value: 'Mon–Fri 8–5 · Sat 10–2' },
+    ],
+    comparison: {
+      columns: ['eMax Errands', 'App marketplaces', 'Freelance listings'],
+      rows: [
+        { label: 'How you book', values: ['Call or text a local number', 'Download app, create account', 'Message individuals, compare profiles'] },
+        { label: 'Who runs your errand', values: ['eMax team in Columbus, IN', 'Whoever accepts the task', 'Independent individual'] },
+        { label: 'Same-day errands', values: ['Yes, often within hours', 'Depends on availability', 'Depends on the person'] },
+        { label: 'Columbus, Indiana focus', values: ['Yes, local business', 'Often lists Columbus, Ohio', 'Varies'] },
+        { label: 'Recurring errands', values: ['Yes, scheduled weekly or monthly', 'Rebook each time', 'Arrange privately'] },
+      ],
+    },
+    howItWorks: [
+      { n: '1', title: 'Call or Text',        desc: 'Reach (812) 565-9585 with what you need, where, and when. A real person answers.' },
+      { n: '2', title: 'We Confirm the Plan', desc: 'We confirm timing and price before anything starts, usually within minutes.' },
+      { n: '3', title: 'Errand Done',         desc: 'We run the errand and text you confirmation, photos or receipts when it\'s complete.' },
+    ],
+    faqs: [
+      { q: 'Is there an errand service in Columbus, Indiana?', a: 'Yes. eMax Errands & More is a locally owned errand service based in Columbus, Indiana. We run pharmacy pickups, store returns, post office runs, grocery pickups, mobile notary visits and custom errands. Call or text (812) 565-9585.' },
+      { q: 'How much does an errand service cost in Columbus, Indiana?', a: 'Simple local errands with eMax start from $9.99. The final price depends on distance, number of stops and wait time. Text (812) 565-9585 for a free quote before you commit.' },
+      { q: 'What errands can I hire someone to run?', a: 'Common errands include prescription pickup, store returns and exchanges, post office and UPS/FedEx drop-offs, grocery and curbside pickups, document delivery, library returns, dry cleaning, event supply runs and mobile notary appointments. If it\'s legal and local, just ask.' },
+      { q: 'Do I need an app to book an errand runner in Columbus?', a: 'No. eMax is booked by phone call or text message at (812) 565-9585. There is no app to download and no account required.' },
+      { q: 'Do you offer errand services for seniors in Columbus, Indiana?', a: 'Yes. Many of our clients are seniors and caregivers. We handle prescription pickups, grocery runs, mail and bill drop-offs and other errands so older adults can stay independent at home.' },
+      { q: 'What areas does your errand service cover?', a: 'All of Columbus, Indiana and Bartholomew County, plus Greenwood, Edinburgh, Seymour, Nashville, Bloomington and surrounding Johnson, Jackson, Jennings, Decatur, Shelby and Brown Counties.' },
+    ],
+  },
+
+  'delivery-service': {
+    slug: 'delivery-service',
+    name: 'Delivery Service',
+    headline: 'Local Delivery Service in Columbus, Indiana',
+    tagline: 'Same-day pickup and delivery anywhere in Columbus.',
+    heroDesc: 'eMax Errands & More is a local delivery service in Columbus, Indiana. We pick up and deliver packages, documents, prescriptions, groceries, store orders and business supplies, usually the same day. Booking is a call or text, with no app required.',
+    metaTitle: 'Delivery Service in Columbus, Indiana | Same-Day Local Delivery | eMax',
+    metaDesc: 'Local delivery service in Columbus, Indiana. Same-day pickup and delivery of packages, documents, prescriptions, groceries and business supplies. No app required. Call or text (812) 565-9585.',
+    keywords: ['delivery service Columbus Indiana', 'local delivery Columbus Indiana', 'courier service Columbus Indiana', 'same day delivery Columbus IN', 'package delivery Columbus Indiana', 'business delivery service Columbus Indiana'],
+    whatIs: 'A local delivery service picks an item up from one place and drops it off at another, usually within the same day. eMax Errands & More provides local pickup-and-delivery across Columbus, Indiana and Bartholomew County for individuals and businesses. We deliver packages, signed documents, prescriptions, groceries, store orders, forgotten items and office supplies. You call or text (812) 565-9585, we confirm price and timing, and we text you when it\'s delivered.',
+    facts: [
+      { label: 'Typical turnaround', value: 'Same day, often 1–4 hours' },
+      { label: 'Customers', value: 'Households & businesses' },
+      { label: 'Booking', value: 'Call or text (812) 565-9585' },
+    ],
+    comparison: {
+      columns: ['eMax Errands', 'App-based couriers', 'Shipping carriers'],
+      rows: [
+        { label: 'Same-day local delivery', values: ['Yes', 'Yes, where drivers are available', 'Usually next day or later'] },
+        { label: 'Pickup from your door', values: ['Yes', 'Yes', 'Scheduled or drop-off'] },
+        { label: 'Waits in line / runs errands', values: ['Yes, returns, pharmacy, post office', 'Delivery only', 'No'] },
+        { label: 'How you book', values: ['Call or text', 'App account', 'Online or in store'] },
+        { label: 'Local Columbus, IN team', values: ['Yes', 'Gig drivers', 'National carrier'] },
+      ],
+    },
+    howItWorks: [
+      { n: '1', title: 'Tell Us Pickup & Drop-off', desc: 'Call or text (812) 565-9585 with both addresses, what\'s being delivered and when it needs to arrive.' },
+      { n: '2', title: 'We Pick It Up',             desc: 'We confirm the price, collect the item and drive it straight to the destination with no side trips.' },
+      { n: '3', title: 'Delivered & Confirmed',     desc: 'You get a text (and photo on request) the moment it\'s delivered.' },
+    ],
+    faqs: [
+      { q: 'What is the best local delivery service in Columbus, Indiana?', a: 'eMax Errands & More is a locally owned delivery service based in Columbus, Indiana with 5-star customer reviews. We do same-day pickup and delivery of packages, documents, prescriptions and groceries, booked by call or text at (812) 565-9585.' },
+      { q: 'Is there same-day delivery in Columbus, Indiana?', a: 'Yes. Most eMax deliveries in Columbus are completed the same day, often within 1–4 hours of booking. Urgent runs can often be dispatched within 30 minutes.' },
+      { q: 'How much does local delivery cost in Columbus, Indiana?', a: 'Local delivery with eMax starts from $9.99 for short in-town runs. Price depends on distance, item size and timing. Text (812) 565-9585 for a free quote.' },
+      { q: 'Do you deliver for businesses in Columbus?', a: 'Yes. We run deliveries for offices, law firms, medical practices, real estate agents and small businesses, including documents, supplies, client gifts and bank drops. Recurring business routes are available.' },
+      { q: 'What can you deliver?', a: 'Packages, signed documents, prescriptions, groceries, store and curbside orders, flowers and gifts, forgotten items, event supplies and office supplies. If it\'s legal and fits in a car, we can usually deliver it.' },
+      { q: 'Do you deliver outside Columbus, Indiana?', a: 'Yes. We deliver between Columbus and Greenwood, Edinburgh, Seymour, Nashville, Bloomington and the surrounding counties. Longer trips are quoted by distance.' },
+    ],
+  },
+
   'same-day-delivery': {
     slug: 'same-day-delivery',
     name: 'Same-Day Delivery',
@@ -86,6 +166,36 @@ export const SERVICES_DATA = {
     ],
   },
 
+  'mobile-notary': {
+    slug: 'mobile-notary',
+    name: 'Mobile Notary',
+    headline: 'Mobile Notary Service in Columbus, Indiana',
+    tagline: 'We come to you — home, office, or anywhere convenient.',
+    heroDesc: 'Need a loan document, real estate closing, power of attorney, or any other document notarized? eMax Errands sends a commissioned notary public to your home, office, or a convenient meeting spot in Columbus, Indiana. No trip to the bank, no waiting rooms.',
+    metaTitle: 'Mobile Notary Service Columbus Indiana | eMax Errands & More',
+    metaDesc: 'Mobile notary service in Columbus, Indiana. eMax sends a commissioned notary to your home, office, or a meeting spot for loan documents, real estate closings, powers of attorney and more. Call (812) 565-9585.',
+    keywords: ['mobile notary Columbus Indiana', 'notary public Columbus Indiana', 'loan document notary Columbus Indiana', 'mobile notary service Indiana', 'notary signing agent Columbus Indiana', 'real estate closing notary Columbus Indiana'],
+    whatIs: 'Our mobile notary service brings a commissioned notary public directly to you in Columbus, Indiana and surrounding Bartholomew County. Whether you need a loan package signed and notarized, a power of attorney witnessed, a real estate closing document executed, or any other notarized paperwork completed, we come to your location at a time that works for you — no bank appointment, no office visit required.',
+    facts: [
+      { label: 'Documents covered', value: 'Loans, POA, real estate & more' },
+      { label: 'Comes to you', value: 'Home, office, or meeting spot' },
+      { label: 'Booking', value: 'Call or text (812) 565-9585' },
+    ],
+    howItWorks: [
+      { n: '1', title: 'Tell Us What You Need', desc: 'Call or text (812) 565-9585 with the document type, your location, and a preferred time. We confirm availability in minutes.' },
+      { n: '2', title: 'We Come to You',        desc: 'A commissioned notary arrives at your home, office, hospital, or any convenient spot in Columbus — on your schedule.' },
+      { n: '3', title: 'Signed, Sealed, Done',  desc: 'We notarize your documents, witness signatures as needed, and you\'re done. No trip, no wait, no hassle.' },
+    ],
+    faqs: [
+      { q: 'What is a mobile notary and how does it work?', a: 'A mobile notary is a commissioned notary public who travels to your location to notarize documents. Instead of you going to a bank or office, we come to your home, workplace, hospital, or any agreed meeting spot in Columbus, Indiana.' },
+      { q: 'What documents can a mobile notary notarize?', a: 'Loan packages, real estate closing documents, powers of attorney, wills and trusts, affidavits, title transfers, medical directives, and most other documents requiring a notarial act. Contact us at (812) 565-9585 to confirm your specific document.' },
+      { q: 'Can you notarize loan documents in Columbus Indiana?', a: 'Yes. Loan document signings are one of our most common mobile notary requests in Columbus, Indiana. We coordinate with your lender or title company and come to you with everything needed to complete the signing.' },
+      { q: 'How much does a mobile notary cost in Columbus Indiana?', a: 'Mobile notary fees in Columbus vary by document type and travel distance. Loan signings and real estate closings typically start around $75–$150. Call or text (812) 565-9585 for an exact quote.' },
+      { q: 'Can you come to a hospital, care facility, or home?', a: 'Yes. We regularly serve clients who are homebound, in hospitals, assisted living facilities, or nursing homes in Columbus, Indiana and Bartholomew County. Just let us know the location and we\'ll coordinate access.' },
+      { q: 'How quickly can you schedule a mobile notary appointment?', a: 'We often accommodate same-day or next-day appointments in Columbus, Indiana. For urgent loan closings or time-sensitive documents, call (812) 565-9585 right away and we\'ll confirm availability immediately.' },
+    ],
+  },
+
   'document-delivery': {
     slug: 'document-delivery',
     name: 'Document Delivery',
@@ -95,7 +205,7 @@ export const SERVICES_DATA = {
     metaTitle: 'Same-Day Document Delivery Columbus Indiana | eMax Errands & More',
     metaDesc: 'Same-day document delivery in Columbus, Indiana. eMax hand-delivers contracts, legal filings, medical records and business papers. No app required. Call (812) 565-9585.',
     keywords: ['document delivery Columbus Indiana', 'same day document delivery Columbus Indiana', 'legal document delivery Columbus Indiana', 'business document courier Columbus Indiana', 'document courier service Columbus Indiana'],
-    whatIs: 'Our document delivery service in Columbus, Indiana provides same-day hand delivery for time-sensitive paperwork. Whether it\'s a signed lease, legal filings, medical records, business contracts, or any other important document, we pick it up and deliver it to the recipient the same day with professional discretion.',
+    whatIs: 'Our document delivery service in Columbus, Indiana provides same-day hand delivery for time-sensitive paperwork. Whether it\'s a signed lease, legal filings, medical records, business contracts, or any other important document, we pick it up and deliver it to the recipient the same day with professional discretion. Need it notarized first? Pair it with our mobile notary service.',
     facts: [
       { label: 'Turnaround', value: 'Same day, often within hours' },
       { label: 'Handling', value: 'Secure and professional' },
