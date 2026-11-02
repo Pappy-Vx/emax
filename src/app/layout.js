@@ -1,20 +1,20 @@
-import { Outfit, DM_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import Script from 'next/script';
 import ConditionalLayout from '@/components/ConditionalLayout';
 import './globals.css';
 
 const GA_ID = 'G-2FSLJD8ZGK'; // Replace with your GA4 Measurement ID
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+const outfit = localFont({
+  src: '../fonts/Outfit-latin.woff2',
+  weight: '400 900',
   variable: '--font-outfit',
   display: 'swap',
 });
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const dmSans = localFont({
+  src: '../fonts/DMSans-latin.woff2',
+  weight: '400 700',
   variable: '--font-dm-sans',
   display: 'swap',
 });
