@@ -19,6 +19,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { CheckoutModule } from './checkout/checkout.module';
 import { OpsModule } from './ops/ops.module';
 import { RunnerModule } from './runner/runner.module';
+import { DbUtcSessionService } from './common/database/db-utc-session.service';
 
 @Module({
   imports: [
@@ -65,6 +66,6 @@ import { RunnerModule } from './runner/runner.module';
     NotificationsModule,
   ],
   controllers: [AppController],
-  providers:   [AppService],
+  providers:   [AppService, DbUtcSessionService],
 })
 export class AppModule {}

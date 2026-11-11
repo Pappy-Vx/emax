@@ -50,7 +50,7 @@ export class Errand extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   notes: string | null;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   isRecurring: boolean;
 
   @Column({ type: 'varchar', nullable: true })
@@ -71,7 +71,7 @@ export class Errand extends BaseEntity {
   riderAssignedAt: Date | null;
 
   // Rider-initiated cancellation request — must be approved by an admin
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   cancellationRequested: boolean;
 
   @Column({ type: 'text', nullable: true })

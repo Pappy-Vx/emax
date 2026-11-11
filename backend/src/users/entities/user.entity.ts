@@ -32,10 +32,10 @@ export class User extends BaseEntity {
   @Column({ type: 'int', default: 0 })
   hivePoints: number;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   isVerified: boolean;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   twoFaEnabled: boolean;
 
   @Column({ type: 'varchar', length: 64, nullable: true })
@@ -47,6 +47,6 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   googleId: string | null;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   isGoogleAuth: boolean;
 }

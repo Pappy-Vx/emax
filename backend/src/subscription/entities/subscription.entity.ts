@@ -44,11 +44,11 @@ export class Subscription extends BaseEntity {
   amountCents: number;
 
   /** When true the subscription renews automatically 1 day before period end */
-  @Column({ type: 'tinyint', default: true })
+  @Column({ type: 'boolean', default: true })
   autoRenew: boolean;
 
   /** When true, the next renewal will cancel instead of charge */
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   cancelAtPeriodEnd: boolean;
 
   /** Plan the user was on before a switch (audit trail) */

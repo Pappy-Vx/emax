@@ -12,6 +12,6 @@ export abstract class BaseEntity {
 
   // Soft delete — 1 = deleted, 0 = active (default).
   // Never query without isDeleted: false; never call repo.remove() — use repo.update(id, { isDeleted: true }).
-  @Column({ type: 'tinyint', default: 0 })
+  @Column({ type: 'boolean', default: false })
   isDeleted: boolean;
 }

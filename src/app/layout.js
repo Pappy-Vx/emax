@@ -26,7 +26,7 @@ export const metadata = {
     template: '%s | eMax Errands & More',
   },
   description:
-    'eMax Errands & More is the trusted local delivery and errand service in Columbus, Indiana. Same-day package delivery, pharmacy pickup, grocery runs, store returns, and document delivery. Call or text (812) 565-9585 â€” no app required.',
+    'eMax Errands & More is the trusted local delivery and errand service in Columbus, Indiana. Same-day package delivery, pharmacy pickup, grocery runs, store returns, and document delivery. Call or text (812) 565-9585 — no app required.',
   keywords: [
     'delivery in Columbus Indiana',
     'delivery service Columbus Indiana',
@@ -68,8 +68,8 @@ export const metadata = {
     google: 'FVqqyg583emRFIODFe8o-JNcTNQfAynzzLnnpvOke-M',
   },
   openGraph: {
-    title: 'eMax Errands & More â€” Making life easier in Columbus, Indiana',
-    description: 'Reliable local errands. Call or text (812) 565-9585 â€” no app required.',
+    title: 'eMax Errands & More — Making life easier in Columbus, Indiana',
+    description: 'Reliable local errands. Call or text (812) 565-9585 — no app required.',
     type: 'website',
   },
 };

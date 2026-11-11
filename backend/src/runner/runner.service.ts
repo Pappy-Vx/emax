@@ -3,15 +3,20 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Errand, TRACKABLE_STATUSES, CLEARED_RUNNER_LOCATION } from '../errands/entities/errand.entity';
+import { Errand, TRACKABLE_STATUSES } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { ErrandsService } from '../errands/errands.service';
+
+const RUNNER_SETTABLE_STATUSES = ['confirmed', 'picked-up', 'on-the-way'] as const;
+type RunnerSettableStatus = (typeof RUNNER_SETTABLE_STATUSES)[number];
 
 @Injectable()
 export class RunnerService {
   constructor(
     @InjectRepository(Errand) private readonly errandRepo: Repository<Errand>,
     @InjectRepository(User)   private readonly userRepo: Repository<User>,
+    private readonly errandsService: ErrandsService,
   ) {}
 
   // Remove code from any errand object before returning to a runner — the customer
@@ -72,8 +77,8 @@ export class RunnerService {
     if (errand.code !== code) {
       throw new BadRequestException('Incorrect customer code. Please ask the customer for their 4-digit confirmation code.');
     }
-    await this.errandRepo.update(errandId, { status: 'completed', ...CLEARED_RUNNER_LOCATION });
-    return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
+    // Goes through ErrandsService so the customer is notified and earns loyalty points.
+    return this.stripCode(await this.errandsService.complete(errandId));
   }
 
   async updateLocation(runnerId: string, errandId: string, dto: UpdateLocationDto): Promise<{ sharedAt: Date }> {
@@ -93,10 +98,17 @@ export class RunnerService {
     return { sharedAt };
   }
 
-  async updateStatus(runnerId: string, errandId: string, status: 'confirmed' | 'picked-up' | 'on-the-way'): Promise<Errand> {
+  async updateStatus(runnerId: string, errandId: string, status: RunnerSettableStatus): Promise<Errand> {
+    // Completion must go through completeErrand (customer code check); cancellation through a request.
+    if (!RUNNER_SETTABLE_STATUSES.includes(status)) {
+      throw new BadRequestException(`Status must be one of: ${RUNNER_SETTABLE_STATUSES.join(', ')}.`);
+    }
     const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
     if (!errand) throw new NotFoundException('Errand not found.');
     if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
+    if (['completed', 'cancelled'].includes(errand.status)) {
+      throw new BadRequestException('Errand is already finalised.');
+    }
     if (!this.isScheduledTimeReached(errand)) {
       const scheduled = new Date(errand.scheduledAt).toLocaleString('en-US', {
         weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
@@ -108,8 +120,8 @@ export class RunnerService {
     if (errand.cancellationRequested) {
       throw new BadRequestException('This errand has a pending cancellation request. Status cannot be changed.');
     }
-    await this.errandRepo.update(errandId, { status });
-    return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
+    // Goes through ErrandsService so the customer gets an email + in-app notification.
+    return this.stripCode(await this.errandsService.updateStatus(errandId, status));
   }
 
   async requestCancellation(runnerId: string, errandId: string, reason: string): Promise<Errand> {

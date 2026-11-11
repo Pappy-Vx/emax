@@ -70,10 +70,14 @@ export class NotificationsService {
     // Attempt delivery
     try {
       if (channel === NotificationChannel.EMAIL) {
+        const trackUrl = typeof payload.metadata?.trackUrl === 'string' ? payload.metadata.trackUrl : null;
+        const cta = trackUrl
+          ? `<p style="margin:24px 0 0;"><a href="${trackUrl}" style="display:inline-block;padding:12px 24px;background:#fdbd2a;color:#1c2a43;font-weight:700;text-decoration:none;border-radius:8px;">Track your errand</a></p>`
+          : '';
         await this.mailService.send({
           to:      payload.recipientEmail,
           subject: payload.title,
-          html:    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#0d2137;">${payload.body}</div>`,
+          html:    `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#0d2137;">${payload.body}${cta}</div>`,
         });
       }
       // PUSH: swap this block for FCM / APNS when ready

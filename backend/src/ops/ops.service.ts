@@ -4,6 +4,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not } from 'typeorm';
 import { Errand, CLEARED_RUNNER_LOCATION } from '../errands/entities/errand.entity';
+import { ErrandsService } from '../errands/errands.service';
 import { User } from '../users/entities/user.entity';
 import { Subscription, SubscriptionStatus } from '../subscription/entities/subscription.entity';
 import { Payment } from '../payment/entities/payment.entity';
@@ -23,6 +24,7 @@ export class OpsService {
     @InjectRepository(User)       private readonly userRepo: Repository<User>,
     @InjectRepository(Subscription) private readonly subRepo: Repository<Subscription>,
     @InjectRepository(Payment)    private readonly paymentRepo: Repository<Payment>,
+    private readonly errandsService: ErrandsService,
   ) {}
 
   // ── Errands ─────────────────────────────────────────────────────
@@ -84,10 +86,14 @@ export class OpsService {
       }
     }
 
-    const status = action === 'complete' ? 'completed' : 'cancelled';
-    // Also clear any pending cancellation request when admin closes the errand
-    await this.errandRepo.update(id, { status, cancellationRequested: false, ...CLEARED_RUNNER_LOCATION });
-    return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
+    if (['completed', 'cancelled'].includes(errand.status)) {
+      throw new BadRequestException('Errand is already finalised.');
+    }
+    // Clear any pending cancellation request, then close via ErrandsService so the customer is notified.
+    await this.errandRepo.update(id, { cancellationRequested: false });
+    return action === 'complete'
+      ? this.errandsService.complete(id)
+      : this.errandsService.cancel(id, errand.userId);
   }
 
   // ── Cancellation requests ────────────────────────────────────────

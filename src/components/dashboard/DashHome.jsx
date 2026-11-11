@@ -11,7 +11,7 @@ import { api } from '@/lib/api';
 import { Card, CardTitle, Pill, SvcIcon } from './DashUI';
 
 const STEPS = ['Requested', 'Confirmed', 'Picked up', 'On the way', 'Delivered'];
-const STATUS_STEP = { scheduled: 0, confirmed: 1, 'on-the-way': 3, completed: 4 };
+const STATUS_STEP = { scheduled: 0, confirmed: 1, 'picked-up': 2, 'on-the-way': 3, completed: 4 };
 
 function stepIndex(status) {
   return STATUS_STEP[status] ?? 0;
@@ -29,10 +29,15 @@ export default function DashHome() {
   const [sub, setSub]             = useState(null);
   const [apiErrands, setApiErrands] = useState(null); // null = loading
 
+  const [hivePoints, setHivePoints] = useState(null);
+
   useEffect(() => {
     api.subscription.me().then(setSub).catch(() => setSub(null));
     api.errands.list().then(setApiErrands).catch(() => setApiErrands([]));
+    api.users.me().then((u) => setHivePoints(u?.hivePoints ?? 0)).catch(() => {});
   }, []);
+
+  const points = hivePoints ?? d.points;
 
   // Resolve plan from subscription, fall back to local store
   const planId = sub?.planId || getPlan() || 'family';
@@ -40,9 +45,11 @@ export default function DashHome() {
 
   // Errands: prefer API list; fall back to local store while loading
   const errands  = apiErrands ?? d.errands;
-  const upcoming = errands.filter((e) => ['scheduled', 'confirmed', 'on-the-way'].includes(e.status));
+  const upcoming = errands.filter((e) => ['scheduled', 'confirmed', 'picked-up', 'on-the-way'].includes(e.status));
   const recent   = errands.filter((e) => e.status === 'completed').slice(0, 4);
-  const active   = upcoming.find((e) => e.status === 'on-the-way') || upcoming[0];
+  const active   = upcoming.find((e) => e.status === 'on-the-way')
+    || upcoming.find((e) => e.status === 'picked-up')
+    || upcoming[0];
 
   // Count errands used in the current billing period (since period start)
   const periodStart = sub?.currentPeriodStart ? new Date(sub.currentPeriodStart) : null;
@@ -116,17 +123,17 @@ export default function DashHome() {
             🐝 Hive Rewards
           </CardTitle>
           <div className="flex items-end gap-1 mb-1">
-            <span className="font-display font-black text-navy text-4xl">{d.points}</span>
+            <span className="font-display font-black text-navy text-4xl">{points}</span>
             <span className="text-navy/55 text-sm mb-1.5">pts</span>
           </div>
           <div className="text-navy/55 text-sm mb-3">{HIVE_TIER} · next reward at {HIVE_NEXT} pts</div>
           <div className="w-full bg-navy/8 rounded-full h-2 overflow-hidden">
             <div
               className="h-full rounded-full bg-gold transition-all"
-              style={{ width: `${Math.min((d.points / HIVE_NEXT) * 100, 100)}%` }}
+              style={{ width: `${Math.min((points / HIVE_NEXT) * 100, 100)}%` }}
             />
           </div>
-          <div className="text-xs text-navy/40 mt-1.5">{HIVE_NEXT - d.points} pts to next reward</div>
+          <div className="text-xs text-navy/40 mt-1.5">{Math.max(0, HIVE_NEXT - points)} pts to next reward</div>
         </Card>
 
         {/* Quick actions */}
@@ -163,7 +170,7 @@ export default function DashHome() {
               </Link>
             }
           >
-            Active Errand #{active.id}
+            Active Errand #{String(active.id).slice(0, 8).toUpperCase()}
           </CardTitle>
           <div className="flex items-center gap-3 mb-5">
             <SvcIcon type={active.type} />

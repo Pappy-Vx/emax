@@ -40,6 +40,6 @@ export class Wallet extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   stripePaymentMethodId: string | null;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   isDefault: boolean;
 }

@@ -29,6 +29,6 @@ export class Address extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   note: string | null;
 
-  @Column({ type: 'tinyint', default: false })
+  @Column({ type: 'boolean', default: false })
   isPrimary: boolean;
 }

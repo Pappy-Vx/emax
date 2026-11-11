@@ -193,7 +193,12 @@ export class ErrandsService {
         type:           ev.type,
         title:          ev.title,
         body:           ev.body,
-        metadata:       { errandId: id, errandType: errand.type, newStatus: status },
+        metadata:       {
+          errandId:   id,
+          errandType: errand.type,
+          newStatus:  status,
+          trackUrl:   `${process.env.FRONTEND_URL ?? 'https://emaxerrands.com'}/dashboard/errands/${id}`,
+        },
       });
     }
     return updated!;
