@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import * as sgMail from '@sendgrid/mail';
 
 interface MailOptions {
   to: string;
@@ -13,9 +12,8 @@ interface MailOptions {
 export class MailService implements OnModuleInit {
   private readonly logger = new Logger(MailService.name);
 
-  // Development: Ethereal SMTP
-  private devTransporter!: nodemailer.Transporter;
-  private devFrom!: string;
+  private transporter?: nodemailer.Transporter;
+  private from!: string;
 
   private readonly isProd: boolean;
 
@@ -25,18 +23,33 @@ export class MailService implements OnModuleInit {
 
   async onModuleInit() {
     if (this.isProd) {
-      const apiKey = this.cfg.get<string>('SENDGRID_API_KEY') ?? '';
-      if (!apiKey) {
-        this.logger.error('SENDGRID_API_KEY not set — emails will not send in production.');
-      } else {
-        sgMail.setApiKey(apiKey);
-        const from = this.cfg.get<string>('SENDGRID_FROM_EMAIL') ?? 'emaxerrands@gmail.com';
-        this.logger.log(`Mail: SendGrid (from=${from})`);
+      const host = this.cfg.get<string>('SMTP_HOST');
+      const user = this.cfg.get<string>('SMTP_USER');
+      const pass = this.cfg.get<string>('SMTP_PASS');
+      if (!host || !user || !pass) {
+        this.logger.error('SMTP_HOST / SMTP_USER / SMTP_PASS not set — emails will not send in production.');
+        return;
       }
+      const port = parseInt(this.cfg.get<string>('SMTP_PORT') ?? '465', 10);
+      this.from = this.cfg.get<string>('SMTP_FROM') ?? `"eMax Errands & More" <${user}>`;
+      this.transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+        // Fail fast if the port is blocked so OTP requests don't hang.
+        connectionTimeout: 10_000,
+        greetingTimeout: 10_000,
+        socketTimeout: 15_000,
+      });
+      this.transporter
+        .verify()
+        .then(() => this.logger.log(`Mail: SMTP ready (${host}:${port}, from=${this.from})`))
+        .catch((err) => this.logger.error(`Mail: SMTP connection failed — ${(err as Error).message}`));
     } else {
       const account = await nodemailer.createTestAccount();
-      this.devFrom = `"eMax Dev" <${account.user}>`;
-      this.devTransporter = nodemailer.createTransport({
+      this.from = `"eMax Dev" <${account.user}>`;
+      this.transporter = nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
         secure: false,
@@ -48,15 +61,13 @@ export class MailService implements OnModuleInit {
   }
 
   async send(opts: MailOptions): Promise<void> {
+    if (!this.transporter) throw new Error('Mail transport is not configured.');
     try {
+      const info = await this.transporter.sendMail({ from: this.from, ...opts });
       if (this.isProd) {
-        const from = this.cfg.get<string>('SENDGRID_FROM_EMAIL') ?? 'emaxerrands@gmail.com';
-        await sgMail.send({ from, to: opts.to, subject: opts.subject, html: opts.html });
         this.logger.log(`Email sent to ${opts.to}: "${opts.subject}"`);
       } else {
-        const info = await this.devTransporter.sendMail({ from: this.devFrom, ...opts });
-        const url = nodemailer.getTestMessageUrl(info);
-        this.logger.log(`📬 Email preview → ${url}`);
+        this.logger.log(`📬 Email preview → ${nodemailer.getTestMessageUrl(info)}`);
       }
     } catch (err) {
       this.logger.error(`Failed to send email to ${opts.to}: ${(err as Error).message}`);

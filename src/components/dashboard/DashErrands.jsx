@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Icons from '@/components/icons';
 import { useDashCtx } from '@/lib/dash-context';
 import { api } from '@/lib/api';
@@ -113,6 +114,19 @@ export default function DashErrands() {
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {['scheduled', 'confirmed', 'picked-up', 'on-the-way'].includes(e.status) && (
+                    <Link
+                      href={`/dashboard/errands/${e.id}`}
+                      className={`inline-flex items-center gap-1 text-xs font-semibold rounded-lg px-3 py-1.5 transition ${
+                        e.status === 'scheduled'
+                          ? 'text-navy/60 hover:text-navy border border-navy/15'
+                          : 'bg-gold text-navy hover:bg-gold-deep'
+                      }`}
+                    >
+                      <Icons.Pin size={13} stroke={2.2} />
+                      Track
+                    </Link>
+                  )}
                   {e.status === 'completed' && (
                     <button
                       type="button"

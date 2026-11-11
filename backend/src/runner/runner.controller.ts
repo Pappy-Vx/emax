@@ -5,6 +5,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RunnerService } from './runner.service';
 import { CompleteErrandDto } from './dto/complete-errand.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Controller('runner')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -38,6 +39,15 @@ export class RunnerController {
     @Body('status') status: 'confirmed' | 'picked-up' | 'on-the-way',
   ) {
     return this.runnerSvc.updateStatus(user.id, id, status);
+  }
+
+  @Post('errands/:id/location')
+  updateLocation(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateLocationDto,
+  ) {
+    return this.runnerSvc.updateLocation(user.id, id, dto);
   }
 
   @Post('errands/:id/cancel-request')

@@ -299,3 +299,19 @@ h1, h2, h3, h4 { font-family: var(--font-display); }
   color: rgba(28,42,67,0.42);
   font-style: italic;
 }
+
+/* Live-tracking runner pin */
+.runner-pin-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(253, 189, 42, 0.45);
+  animation: runner-pulse 1.8s ease-out infinite;
+}
+@keyframes runner-pulse {
+  0%   { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .runner-pin-pulse { animation: none; }
+}

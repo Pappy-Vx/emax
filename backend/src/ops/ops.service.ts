@@ -3,7 +3,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not } from 'typeorm';
-import { Errand } from '../errands/entities/errand.entity';
+import { Errand, CLEARED_RUNNER_LOCATION } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
 import { Subscription, SubscriptionStatus } from '../subscription/entities/subscription.entity';
 import { Payment } from '../payment/entities/payment.entity';
@@ -86,7 +86,7 @@ export class OpsService {
 
     const status = action === 'complete' ? 'completed' : 'cancelled';
     // Also clear any pending cancellation request when admin closes the errand
-    await this.errandRepo.update(id, { status, cancellationRequested: false });
+    await this.errandRepo.update(id, { status, cancellationRequested: false, ...CLEARED_RUNNER_LOCATION });
     return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
   }
 
@@ -114,6 +114,7 @@ export class OpsService {
       cancellationRequested:     false,
       cancellationRequestReason: null,
       cancellationRequestedAt:   null,
+      ...CLEARED_RUNNER_LOCATION,
     });
 
     // Immediately try to assign to another available runner
@@ -174,7 +175,7 @@ export class OpsService {
     if (!errand) throw new NotFoundException('Errand not found.');
     const rider = await this.userRepo.findOneBy({ id: riderId, isDeleted: false });
     if (!rider || rider.role !== 'runner') throw new BadRequestException('User is not a runner.');
-    await this.errandRepo.update(errandId, { riderId, riderAssignedAt: new Date() });
+    await this.errandRepo.update(errandId, { riderId, riderAssignedAt: new Date(), ...CLEARED_RUNNER_LOCATION });
     return this.errandRepo.findOneBy({ id: errandId }) as Promise<Errand>;
   }
 

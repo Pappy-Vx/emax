@@ -32,6 +32,11 @@ export class ErrandsController {
   }
 
   /** PATCH /api/v1/errands/:id/cancel */
+  @Get(':id/tracking')
+  tracking(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.errandsService.getTracking(id, user.id);
+  }
+
   @Patch(':id/cancel')
   cancel(@Param('id') id: string, @CurrentUser() user: User) {
     return this.errandsService.cancel(id, user.id);

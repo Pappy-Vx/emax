@@ -5,7 +5,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not, IsNull } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Errand } from './entities/errand.entity';
+import { Errand, TRACKABLE_STATUSES, CLEARED_RUNNER_LOCATION } from './entities/errand.entity';
 import { Subscription, SubscriptionStatus, BillingCycle } from '../subscription/entities/subscription.entity';
 import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
 import { CreateErrandDto } from './dto/create-errand.dto';
@@ -83,12 +83,44 @@ export class ErrandsService {
     return errand;
   }
 
+  async getTracking(id: string, userId: string) {
+    const errand = await this.findOne(id, userId);
+    const runner = errand.riderId ? await this.userRepo.findOneBy({ id: errand.riderId }) : null;
+
+    // Only expose a fix sent by the current runner while the errand is in progress.
+    const live =
+      TRACKABLE_STATUSES.includes(errand.status) &&
+      errand.runnerLat != null &&
+      errand.runnerLng != null &&
+      errand.runnerLocationAt != null &&
+      (!errand.riderAssignedAt || errand.runnerLocationAt >= errand.riderAssignedAt);
+
+    return {
+      id:          errand.id,
+      type:        errand.type,
+      status:      errand.status,
+      fromAddress: errand.fromAddress,
+      toAddress:   errand.toAddress,
+      scheduledAt: errand.scheduledAt,
+      code:        errand.code,
+      runnerName:  runner?.name?.split(' ')[0] ?? null,
+      location: live
+        ? {
+            lat:       errand.runnerLat,
+            lng:       errand.runnerLng,
+            accuracy:  errand.runnerAccuracy,
+            updatedAt: errand.runnerLocationAt,
+          }
+        : null,
+    };
+  }
+
   async cancel(id: string, userId: string): Promise<Errand> {
     const errand = await this.findOne(id, userId);
     if (['completed', 'cancelled'].includes(errand.status)) {
       throw new ForbiddenException('Cannot cancel a completed or already cancelled errand.');
     }
-    await this.repo.update(id, { status: 'cancelled' });
+    await this.repo.update(id, { status: 'cancelled', ...CLEARED_RUNNER_LOCATION });
     const updated = await this.findOne(id, userId);
     const user = await this.usersService.findById(userId);
     this.logger.log(`[${user.email}] errand cancelled (id=${id} type=${errand.type})`);
@@ -106,7 +138,7 @@ export class ErrandsService {
   async complete(id: string): Promise<Errand> {
     const errand = await this.repo.findOneBy({ id });
     if (!errand) throw new NotFoundException('Errand not found.');
-    await this.repo.update(id, { status: 'completed' });
+    await this.repo.update(id, { status: 'completed', ...CLEARED_RUNNER_LOCATION });
     await this.usersService.addPoints(errand.userId, POINTS_PER_ERRAND);
     const updated = await this.repo.findOneBy({ id });
     const user = await this.usersService.findById(errand.userId);

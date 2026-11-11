@@ -5,7 +5,7 @@
  * Base URL is set via BASE_API_URL in .env.local.
  */
 
-const BASE = process.env.BASE_API_URL ?? 'https://emax-oohv.onrender.com/api/v1';
+const BASE = process.env.BASE_API_URL ?? 'https://api.emaxerrands.com/api/v1';
 
 // Read tokens from their respective isolated localStorage keys — avoids circular imports
 function _readToken(key) {
@@ -138,6 +138,9 @@ export const api = {
     /** GET /errands/:id */
     get: (id) => apiFetch(`/errands/${id}`, { auth: true }),
 
+    /** GET /errands/:id/tracking — status + runner's live location while in progress */
+    tracking: (id) => apiFetch(`/errands/${id}/tracking`, { auth: true }),
+
     /** PATCH /errands/:id/cancel */
     cancel: (id) =>
       apiFetch(`/errands/${id}/cancel`, { method: 'PATCH', auth: true }),
@@ -269,5 +272,7 @@ export const api = {
       apiFetch(`/runner/errands/${id}/status`, { method: 'PATCH', body: { status }, authRunner: true }),
     requestCancellation: (id, reason) =>
       apiFetch(`/runner/errands/${id}/cancel-request`, { method: 'POST', body: { reason }, authRunner: true }),
+    shareLocation: (id, location) =>
+      apiFetch(`/runner/errands/${id}/location`, { method: 'POST', body: location, authRunner: true }),
   },
 };

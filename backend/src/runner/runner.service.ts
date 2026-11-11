@@ -3,8 +3,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Errand } from '../errands/entities/errand.entity';
+import { Errand, TRACKABLE_STATUSES, CLEARED_RUNNER_LOCATION } from '../errands/entities/errand.entity';
 import { User } from '../users/entities/user.entity';
+import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Injectable()
 export class RunnerService {
@@ -71,8 +72,25 @@ export class RunnerService {
     if (errand.code !== code) {
       throw new BadRequestException('Incorrect customer code. Please ask the customer for their 4-digit confirmation code.');
     }
-    await this.errandRepo.update(errandId, { status: 'completed' });
+    await this.errandRepo.update(errandId, { status: 'completed', ...CLEARED_RUNNER_LOCATION });
     return this.stripCode(await this.errandRepo.findOneBy({ id: errandId }) as Errand);
+  }
+
+  async updateLocation(runnerId: string, errandId: string, dto: UpdateLocationDto): Promise<{ sharedAt: Date }> {
+    const errand = await this.errandRepo.findOneBy({ id: errandId, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    if (errand.riderId !== runnerId) throw new ForbiddenException('Not your errand.');
+    if (!TRACKABLE_STATUSES.includes(errand.status)) {
+      throw new BadRequestException('Location sharing is only available while the errand is in progress.');
+    }
+    const sharedAt = new Date();
+    await this.errandRepo.update(errandId, {
+      runnerLat:        dto.lat,
+      runnerLng:        dto.lng,
+      runnerAccuracy:   dto.accuracy != null ? Math.round(dto.accuracy) : null,
+      runnerLocationAt: sharedAt,
+    });
+    return { sharedAt };
   }
 
   async updateStatus(runnerId: string, errandId: string, status: 'confirmed' | 'picked-up' | 'on-the-way'): Promise<Errand> {

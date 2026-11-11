@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import RunnerLocationShare from './RunnerLocationShare';
 
+const TRACKABLE = ['confirmed', 'picked-up', 'on-the-way'];
 const STATUS_FLOW = ['scheduled', 'confirmed', 'picked-up', 'on-the-way'];
 
 function fmt(d) {
@@ -212,6 +214,10 @@ export default function RunnerErrandDetail({ errandId }) {
             )}
           </div>
         </div>
+      )}
+
+      {!isDone && (
+        <RunnerLocationShare errandId={errandId} active={TRACKABLE.includes(errand.status)} />
       )}
 
       {/* Actions */}

@@ -1,4 +1,4 @@
-import localFont from 'next/font/local';
+﻿import localFont from 'next/font/local';
 import Script from 'next/script';
 import ConditionalLayout from '@/components/ConditionalLayout';
 import './globals.css';
@@ -26,7 +26,7 @@ export const metadata = {
     template: '%s | eMax Errands & More',
   },
   description:
-    'eMax Errands & More is the trusted local delivery and errand service in Columbus, Indiana. Same-day package delivery, pharmacy pickup, grocery runs, store returns, and document delivery. Call or text (812) 565-9585 — no app required.',
+    'eMax Errands & More is the trusted local delivery and errand service in Columbus, Indiana. Same-day package delivery, pharmacy pickup, grocery runs, store returns, and document delivery. Call or text (812) 565-9585 â€” no app required.',
   keywords: [
     'delivery in Columbus Indiana',
     'delivery service Columbus Indiana',
@@ -68,8 +68,8 @@ export const metadata = {
     google: 'FVqqyg583emRFIODFe8o-JNcTNQfAynzzLnnpvOke-M',
   },
   openGraph: {
-    title: 'eMax Errands & More — Making life easier in Columbus, Indiana',
-    description: 'Reliable local errands. Call or text (812) 565-9585 — no app required.',
+    title: 'eMax Errands & More â€” Making life easier in Columbus, Indiana',
+    description: 'Reliable local errands. Call or text (812) 565-9585 â€” no app required.',
     type: 'website',
   },
 };
@@ -125,33 +125,6 @@ const jsonLd = {
       { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Custom Local Errands Columbus Indiana' } },
     ],
   },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '5.0',
-    reviewCount: '3',
-    bestRating: '5',
-    worstRating: '1',
-  },
-  review: [
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Brad D.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-      reviewBody: 'Elizabeth with EMax was amazing to work with! I needed a package picked up and dropped off at a local UPS Store and she got right on it. Very friendly, trustworthy, and reliable. Would absolutely work with them again!',
-    },
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Adeola A.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-      reviewBody: 'Outstanding service! This company is incredibly efficient, reliable, and delivers on time. The communication throughout was excellent — she kept me informed every step of the way. I highly recommend them.',
-    },
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Tee A.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5' },
-      reviewBody: 'Excellent service by Elizabeth from eMax errands and more. Dealing with eMax was smooth and fast. I will definitely do it again.',
-    },
-  ],
 };
 
 const websiteJsonLd = {
