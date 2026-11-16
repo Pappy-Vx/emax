@@ -119,7 +119,60 @@ export class NotificationsService {
   handlePaymentRefunded(p: NotificationPayload) { return this.send(p); }
 
   @OnEvent(NOTIFY.PLAN_ACTIVATED)
-  handlePlanActivated(p: NotificationPayload) { return this.send(p); }
+  async handlePlanActivated(p: NotificationPayload): Promise<void> {
+    const meta = (p.metadata ?? {}) as Record<string, any>;
+    if (!meta['periodEnd']) {
+      await this.send(p);
+      return;
+    }
+
+    const record = await this.repo.save(
+      this.repo.create({
+        userId:         p.userId,
+        recipientEmail: p.recipientEmail,
+        type:           p.type,
+        channel:        NotificationChannel.EMAIL,
+        status:         NotificationStatus.PENDING,
+        title:          p.title,
+        body:           p.body,
+        metadata:       JSON.stringify(meta),
+        sentAt:         null,
+        failureReason:  null,
+        readAt:         null,
+      }),
+    );
+
+    const fmt = (d: Date) =>
+      d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/Indiana/Indianapolis' });
+    const billingCycle: 'monthly' | 'yearly' = meta['billingCycle'] === 'yearly' ? 'yearly' : 'monthly';
+    const periodStart = new Date(meta['periodStart']);
+    const periodEnd   = new Date(meta['periodEnd']);
+    // Yearly plans reset the errand allowance each calendar month; monthly plans at period end.
+    const resetsOn = billingCycle === 'yearly'
+      ? new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, 1)
+      : periodEnd;
+    const frontend = process.env.FRONTEND_URL ?? 'https://emaxerrands.com';
+
+    try {
+      await this.mailService.sendPlanWelcome(p.recipientEmail, {
+        planName:      String(meta['planName'] ?? ''),
+        errands:       Number(meta['errands'] ?? 0),
+        priceFmt:      `$${(Number(meta['amountCents'] ?? 0) / 100).toFixed(2)}`,
+        billingCycle,
+        activatedOn:   fmt(periodStart),
+        resetsOn:      fmt(resetsOn),
+        nextBillingOn: fmt(periodEnd),
+        dashboardUrl:  `${frontend}/dashboard`,
+      });
+      record.status = NotificationStatus.SENT;
+      record.sentAt = new Date();
+    } catch (err) {
+      record.status        = NotificationStatus.FAILED;
+      record.failureReason = (err as Error).message;
+      this.logger.warn(`Plan welcome email failed → ${p.recipientEmail}: ${(err as Error).message}`);
+    }
+    await this.repo.save(record);
+  }
 
   @OnEvent(NOTIFY.PLAN_CHANGED)
   handlePlanChanged(p: NotificationPayload) { return this.send(p); }

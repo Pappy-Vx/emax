@@ -54,7 +54,6 @@ export const PLANS = [
       '$16.79 per errand (vs $19.99 pay-as-you-go)',
       '2 saved addresses',
       'Text updates on every errand',
-      'Unused errands roll over 1 month',
     ],
   },
   {
@@ -75,7 +74,6 @@ export const PLANS = [
       'Recurring weekly schedule',
       'Up to 5 saved addresses',
       'Caregiver updates included',
-      'Unused errands roll over 1 month',
     ],
   },
   {

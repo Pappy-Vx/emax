@@ -74,15 +74,23 @@ export class PaymentService {
     // Single errand: record payment only — no subscription change
     if (dto.planId !== 'single_errand') {
       await this.usersService.updatePlan(userId, dto.planId);
-      await this.subscriptionService.create(userId, dto.planId, billingCycle, amountCents);
+      const sub = await this.subscriptionService.create(userId, dto.planId, billingCycle, amountCents);
 
       this.events.emit(NOTIFY.PLAN_ACTIVATED, {
         userId,
         recipientEmail: user.email,
         type:           NotificationType.PLAN_ACTIVATED,
-        title:          `${plan.name} plan activated`,
+        title:          `Welcome to your ${plan.name} plan`,
         body:           `Welcome to your ${plan.name} plan. You now have access to ${plan.errands} errands/month.`,
-        metadata:       { planId: dto.planId },
+        metadata:       {
+          planId:      dto.planId,
+          planName:    plan.name,
+          errands:     plan.errands,
+          amountCents,
+          billingCycle,
+          periodStart: sub.currentPeriodStart,
+          periodEnd:   sub.currentPeriodEnd,
+        },
       });
     }
 
