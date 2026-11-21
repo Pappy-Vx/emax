@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import OpsNewErrand, { CopyLinkButton } from './OpsNewErrand';
 
 function CancellationRequests({ onResolved }) {
   const [requests, setRequests] = useState([]);
@@ -44,7 +45,7 @@ function CancellationRequests({ onResolved }) {
                 <span className="font-mono font-bold text-navy">{e.code ?? '—'}</span>
                 <span className="text-xs text-gray-500 capitalize">{e.type}</span>
                 <span className="text-xs text-gray-400">·</span>
-                <span className="text-xs text-gray-600 font-medium">{e.user?.name ?? '—'}</span>
+                <span className="text-xs text-gray-600 font-medium">{e.user?.name ?? e.customerName ?? '—'}</span>
               </div>
               <p className="text-xs text-gray-500 truncate mb-1">{e.fromAddress} → {e.toAddress}</p>
               <p className="text-xs text-orange-700 italic">
@@ -101,6 +102,22 @@ export default function OpsErrands() {
   const [loading, setLoading] = useState(false);
   const [err, setErr]         = useState('');
   const [overriding, setOverriding] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [paying, setPaying] = useState(null);
+
+  async function togglePayment(e) {
+    const next = e.paymentStatus === 'paid' ? 'unpaid' : 'paid';
+    if (!confirm(`Mark this errand as ${next}?`)) return;
+    setPaying(e.id);
+    try {
+      await api.ops.setPaymentStatus(e.id, next);
+      load();
+    } catch (err2) {
+      alert(err2.message);
+    } finally {
+      setPaying(null);
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -132,7 +149,17 @@ export default function OpsErrands() {
 
   return (
     <div>
-      <h2 className="font-display font-black text-navy text-2xl mb-6">Errands</h2>
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <h2 className="font-display font-black text-navy text-2xl">Errands</h2>
+        <button
+          type="button" onClick={() => setShowNew(true)}
+          className="px-4 py-2 rounded-full bg-gold text-navy text-sm font-semibold hover:bg-gold-deep transition"
+        >
+          + New errand
+        </button>
+      </div>
+
+      {showNew && <OpsNewErrand onClose={() => setShowNew(false)} onCreated={load} />}
 
       {/* Pending cancellation requests — resolving one also refreshes the errand table */}
       <CancellationRequests onResolved={load} />
@@ -185,10 +212,29 @@ export default function OpsErrands() {
               <tr key={e.id} className={`border-b border-gray-50 last:border-0 hover:bg-gray-50/50 ${e.cancellationRequested ? 'bg-orange-50/60' : ''}`}>
                 <td className="px-4 py-3 font-mono font-bold text-navy">{e.code ?? '—'}</td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-navy">{e.user?.name ?? '—'}</p>
-                  <p className="text-gray-400 text-xs">{e.user?.email ?? ''}</p>
+                  <p className="font-medium text-navy">
+                    {e.user?.name ?? e.customerName ?? '—'}
+                    {e.source === 'admin' && (
+                      <span className="ml-1.5 align-middle inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-500 uppercase">Guest</span>
+                    )}
+                  </p>
+                  <p className="text-gray-400 text-xs">{e.user?.email ?? e.customerPhone ?? e.customerEmail ?? ''}</p>
                 </td>
-                <td className="px-4 py-3 capitalize text-gray-600">{e.type}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  <p className="capitalize">{e.type}</p>
+                  {e.category && <p className="text-xs text-gray-400">{e.category}</p>}
+                  {e.paymentStatus && (
+                    <button
+                      type="button" onClick={() => togglePayment(e)} disabled={paying === e.id}
+                      title="Click to change payment status"
+                      className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold disabled:opacity-50 ${
+                        e.paymentStatus === 'paid' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                      }`}
+                    >
+                      {e.paymentStatus}{e.amountCents != null ? ` · $${(e.amountCents / 100).toFixed(2)}` : ''}
+                    </button>
+                  )}
+                </td>
                 <td className="px-4 py-3 max-w-[220px]">
                   <p className="text-xs text-gray-500 truncate">{e.fromAddress}</p>
                   <p className="text-xs text-gray-400 truncate">→ {e.toAddress}</p>
@@ -208,6 +254,12 @@ export default function OpsErrands() {
                   )}
                 </td>
                 <td className="px-4 py-3">
+                  {!['completed', 'cancelled'].includes(e.status) && (
+                    <CopyLinkButton
+                      token={e.trackingToken}
+                      className="mb-2 block text-xs px-2.5 py-1 rounded-lg bg-gold/20 text-navy hover:bg-gold/40 font-medium whitespace-nowrap"
+                    />
+                  )}
                   {!['completed', 'cancelled'].includes(e.status) && (
                     <div className="flex gap-2">
                       <button

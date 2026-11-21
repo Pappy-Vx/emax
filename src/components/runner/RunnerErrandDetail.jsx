@@ -177,12 +177,23 @@ export default function RunnerErrandDetail({ errandId }) {
       </div>
 
       {/* Customer info */}
-      {errand.user && (
+      {(errand.user || errand.customerName) && (
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
           <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-3">Customer</p>
-          <p className="font-semibold text-navy">{errand.user.name}</p>
-          <p className="text-sm text-gray-500">{errand.user.email}</p>
-          {errand.user.phone && <p className="text-sm text-gray-500">{errand.user.phone}</p>}
+          <p className="font-semibold text-navy">{errand.user?.name ?? errand.customerName}</p>
+          {(errand.user?.email ?? errand.customerEmail) && (
+            <p className="text-sm text-gray-500">{errand.user?.email ?? errand.customerEmail}</p>
+          )}
+          {(errand.user?.phone ?? errand.customerPhone) && (
+            <a href={`tel:${errand.user?.phone ?? errand.customerPhone}`} className="text-sm text-gray-500 underline underline-offset-2">
+              {errand.user?.phone ?? errand.customerPhone}
+            </a>
+          )}
+          {errand.paymentStatus === 'unpaid' && (
+            <p className="mt-3 text-xs font-semibold text-red-700 bg-red-50 rounded-lg px-3 py-2">
+              Not paid yet{errand.amountCents != null ? ` — collect $${(errand.amountCents / 100).toFixed(2)}` : ''}.
+            </p>
+          )}
         </div>
       )}
 

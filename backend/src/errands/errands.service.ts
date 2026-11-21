@@ -5,7 +5,8 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not, IsNull } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Errand, TRACKABLE_STATUSES, CLEARED_RUNNER_LOCATION } from './entities/errand.entity';
+import { Errand, TRACKABLE_STATUSES, CLEARED_RUNNER_LOCATION, newTrackingToken } from './entities/errand.entity';
+import { CreateOpsErrandDto } from '../ops/dto/create-ops-errand.dto';
 import { Subscription, SubscriptionStatus, BillingCycle } from '../subscription/entities/subscription.entity';
 import { Payment, PaymentStatus } from '../payment/entities/payment.entity';
 import { CreateErrandDto } from './dto/create-errand.dto';
@@ -50,6 +51,7 @@ export class ErrandsService {
       recurringFrequency: dto.recurringFrequency,
       status:             'scheduled',
       code,
+      trackingToken:      newTrackingToken(),
     });
     const saved = await this.repo.save(errand);
     // Auto-assign to the least-loaded active runner (max 3 errands/day)
@@ -69,6 +71,32 @@ export class ErrandsService {
     return saved;
   }
 
+  /** Errand created by ops for a customer who may not have an eMax account. No plan quota applies. */
+  async createByAdmin(dto: CreateOpsErrandDto): Promise<Errand> {
+    const errand = this.repo.create({
+      userId:        null,
+      source:        'admin',
+      customerName:  dto.customerName.trim(),
+      customerPhone: dto.customerPhone?.trim() || null,
+      customerEmail: dto.customerEmail?.trim() || null,
+      category:      dto.category,
+      paymentStatus: dto.paymentStatus,
+      amountCents:   dto.amount != null ? Math.round(dto.amount * 100) : null,
+      type:          dto.type,
+      fromAddress:   dto.fromAddress,
+      toAddress:     dto.toAddress,
+      scheduledAt:   new Date(dto.scheduledAt),
+      notes:         dto.notes ?? null,
+      status:        'scheduled',
+      code:          String(Math.floor(1000 + Math.random() * 9000)),
+      trackingToken: newTrackingToken(),
+    });
+    const saved = await this.repo.save(errand);
+    await this.autoAssignRider(saved);
+    this.logger.log(`[ops] errand created for guest "${saved.customerName}" (id=${saved.id} type=${dto.type} paid=${dto.paymentStatus})`);
+    return (await this.repo.findOneBy({ id: saved.id }))!;
+  }
+
   async findForUser(userId: string): Promise<Errand[]> {
     return this.repo.find({
       where: { userId },
@@ -84,7 +112,19 @@ export class ErrandsService {
   }
 
   async getTracking(id: string, userId: string) {
-    const errand = await this.findOne(id, userId);
+    return this.toTracking(await this.findOne(id, userId));
+  }
+
+  /** Public, no-login tracking via the errand's unguessable token. */
+  async getTrackingByToken(token: string) {
+    const errand = /^[a-f0-9]{32}$/.test(token)
+      ? await this.repo.findOneBy({ trackingToken: token, isDeleted: false })
+      : null;
+    if (!errand) throw new NotFoundException('Tracking link not found.');
+    return this.toTracking(errand);
+  }
+
+  private async toTracking(errand: Errand) {
     const runner = errand.riderId ? await this.userRepo.findOneBy({ id: errand.riderId }) : null;
 
     // Only expose a fix sent by the current runner while the errand is in progress.
@@ -116,21 +156,34 @@ export class ErrandsService {
   }
 
   async cancel(id: string, userId: string): Promise<Errand> {
-    const errand = await this.findOne(id, userId);
+    return this.cancelErrand(await this.findOne(id, userId));
+  }
+
+  async adminCancel(id: string): Promise<Errand> {
+    const errand = await this.repo.findOneBy({ id, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    return this.cancelErrand(errand);
+  }
+
+  private async cancelErrand(errand: Errand): Promise<Errand> {
     if (['completed', 'cancelled'].includes(errand.status)) {
       throw new ForbiddenException('Cannot cancel a completed or already cancelled errand.');
     }
-    await this.repo.update(id, { status: 'cancelled', ...CLEARED_RUNNER_LOCATION });
-    const updated = await this.findOne(id, userId);
-    const user = await this.usersService.findById(userId);
-    this.logger.log(`[${user.email}] errand cancelled (id=${id} type=${errand.type})`);
+    await this.repo.update(errand.id, { status: 'cancelled', ...CLEARED_RUNNER_LOCATION });
+    const updated = (await this.repo.findOneBy({ id: errand.id }))!;
+    if (!errand.userId) {
+      this.logger.log(`[guest] errand cancelled (id=${errand.id} type=${errand.type})`);
+      return updated;
+    }
+    const user = await this.usersService.findById(errand.userId);
+    this.logger.log(`[${user.email}] errand cancelled (id=${errand.id} type=${errand.type})`);
     this.events.emit(NOTIFY.ERRAND_CANCELLED, {
-      userId,
+      userId:         errand.userId,
       recipientEmail: user.email,
       type:           NotificationType.ERRAND_CANCELLED,
       title:          'Errand cancelled',
       body:           `Your ${errand.type} errand scheduled for ${errand.scheduledAt.toLocaleString()} has been cancelled.`,
-      metadata:       { errandId: id, errandType: errand.type },
+      metadata:       { errandId: errand.id, errandType: errand.type },
     });
     return updated;
   }
@@ -139,8 +192,12 @@ export class ErrandsService {
     const errand = await this.repo.findOneBy({ id });
     if (!errand) throw new NotFoundException('Errand not found.');
     await this.repo.update(id, { status: 'completed', ...CLEARED_RUNNER_LOCATION });
-    await this.usersService.addPoints(errand.userId, POINTS_PER_ERRAND);
     const updated = await this.repo.findOneBy({ id });
+    if (!errand.userId) {
+      this.logger.log(`[guest] errand completed (id=${id} type=${errand.type})`);
+      return updated!;
+    }
+    await this.usersService.addPoints(errand.userId, POINTS_PER_ERRAND);
     const user = await this.usersService.findById(errand.userId);
     this.logger.log(`[${user.email}] errand completed (id=${id} type=${errand.type} +${POINTS_PER_ERRAND} pts)`);
     this.events.emit(NOTIFY.ERRAND_COMPLETED, {
@@ -159,6 +216,10 @@ export class ErrandsService {
     if (!errand) throw new NotFoundException('Errand not found.');
     await this.repo.update(id, { status });
     const updated = await this.repo.findOneBy({ id });
+    if (!errand.userId) {
+      this.logger.log(`[guest] errand status → ${status} (id=${id} type=${errand.type})`);
+      return updated!;
+    }
     const user = await this.usersService.findById(errand.userId);
     this.logger.log(`[${user.email}] errand status → ${status} (id=${id} type=${errand.type})`);
 

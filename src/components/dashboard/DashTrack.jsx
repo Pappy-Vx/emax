@@ -36,17 +36,22 @@ function fmtDate(iso) {
 }
 
 export default function DashTrack({ errandId }) {
+  const fetchTracking = useCallback(() => api.errands.tracking(errandId), [errandId]);
+  return <TrackView fetchTracking={fetchTracking} backHref="/dashboard/errands" backLabel="My errands" />;
+}
+
+/** Shared tracking UI — used by the customer dashboard and the public /track/:token page. */
+export function TrackView({ fetchTracking, backHref, backLabel }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Date.now());
 
   const load = useCallback(
     () =>
-      api.errands
-        .tracking(errandId)
+      fetchTracking()
         .then((d) => { setData(d); setError(''); })
         .catch((e) => setError(e.message || 'Could not load tracking.')),
-    [errandId],
+    [fetchTracking],
   );
 
   const finished = data ? ['completed', 'cancelled'].includes(data.status) : false;
@@ -91,10 +96,12 @@ export default function DashTrack({ errandId }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
-      <Link href="/dashboard/errands" className="inline-flex items-center gap-1.5 text-sm text-navy/50 hover:text-navy transition">
-        <Icons.ChevLeft size={16} stroke={2} />
-        My errands
-      </Link>
+      {backHref && (
+        <Link href={backHref} className="inline-flex items-center gap-1.5 text-sm text-navy/50 hover:text-navy transition">
+          <Icons.ChevLeft size={16} stroke={2} />
+          {backLabel}
+        </Link>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap">
         <h1 className="font-display font-bold text-navy text-2xl capitalize">Track {data.type}</h1>

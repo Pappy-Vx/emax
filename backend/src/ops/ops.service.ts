@@ -5,6 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not } from 'typeorm';
 import { Errand, CLEARED_RUNNER_LOCATION } from '../errands/entities/errand.entity';
 import { ErrandsService } from '../errands/errands.service';
+import { CreateOpsErrandDto } from './dto/create-ops-errand.dto';
+import { ERRAND_PAYMENT_STATUSES } from '../common/constants/errand.constant';
 import { User } from '../users/entities/user.entity';
 import { Subscription, SubscriptionStatus } from '../subscription/entities/subscription.entity';
 import { Payment } from '../payment/entities/payment.entity';
@@ -51,7 +53,7 @@ export class OpsService {
     if (opts.status) qb.andWhere('e.status = :status', { status: opts.status });
     if (opts.search) {
       qb.andWhere(
-        '(u.name LIKE :q OR u.email LIKE :q OR e.fromAddress LIKE :q OR e.toAddress LIKE :q OR e.code = :code)',
+        '(u.name LIKE :q OR u.email LIKE :q OR e.customerName LIKE :q OR e.customerPhone LIKE :q OR e.customerEmail LIKE :q OR e.fromAddress LIKE :q OR e.toAddress LIKE :q OR e.code = :code)',
         { q: `%${opts.search}%`, code: opts.search },
       );
     }
@@ -93,7 +95,21 @@ export class OpsService {
     await this.errandRepo.update(id, { cancellationRequested: false });
     return action === 'complete'
       ? this.errandsService.complete(id)
-      : this.errandsService.cancel(id, errand.userId);
+      : this.errandsService.adminCancel(id);
+  }
+
+  createErrand(dto: CreateOpsErrandDto): Promise<Errand> {
+    return this.errandsService.createByAdmin(dto);
+  }
+
+  async setPaymentStatus(id: string, paymentStatus: string): Promise<Errand> {
+    if (!(ERRAND_PAYMENT_STATUSES as readonly string[]).includes(paymentStatus)) {
+      throw new BadRequestException('Payment status must be paid or unpaid.');
+    }
+    const errand = await this.errandRepo.findOneBy({ id, isDeleted: false });
+    if (!errand) throw new NotFoundException('Errand not found.');
+    await this.errandRepo.update(id, { paymentStatus: paymentStatus as 'paid' | 'unpaid' });
+    return this.errandRepo.findOneBy({ id }) as Promise<Errand>;
   }
 
   // ── Cancellation requests ────────────────────────────────────────

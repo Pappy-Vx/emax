@@ -68,6 +68,9 @@ async function apiFetch(path, { method = 'GET', body, auth = false, authOps = fa
 }
 
 export const api = {
+  /** GET /track/:token — public, no login */
+  track: (token) => apiFetch(`/track/${encodeURIComponent(token)}`),
+
   auth: {
     /** POST /auth/register → { otpRequired: true, message } */
     register: (dto) =>
@@ -234,6 +237,10 @@ export const api = {
       ).toString();
       return apiFetch(`/ops/errands${q ? `?${q}` : ''}`, { authOps: true });
     },
+    createErrand: (dto) =>
+      apiFetch('/ops/errands', { method: 'POST', body: dto, authOps: true }),
+    setPaymentStatus: (id, paymentStatus) =>
+      apiFetch(`/ops/errands/${id}/payment`, { method: 'PATCH', body: { paymentStatus }, authOps: true }),
     overrideErrand: (id, action) =>
       apiFetch(`/ops/errands/${id}/override`, { method: 'PATCH', body: { action }, authOps: true }),
     assignRider: (errandId, riderId) =>

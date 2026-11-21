@@ -7,6 +7,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { OpsService } from './ops.service';
 import { CreateRunnerDto } from './dto/create-runner.dto';
+import { CreateOpsErrandDto } from './dto/create-ops-errand.dto';
 import * as bcrypt from 'bcrypt';
 
 @Controller('ops')
@@ -27,6 +28,19 @@ export class OpsController {
     @Query('to')       to?: string,
   ) {
     return this.ops.listErrands({ page, pageSize, search, status, from, to });
+  }
+
+  @Post('errands')
+  createErrand(@Body() dto: CreateOpsErrandDto) {
+    return this.ops.createErrand(dto);
+  }
+
+  @Patch('errands/:id/payment')
+  setPaymentStatus(
+    @Param('id') id: string,
+    @Body('paymentStatus') paymentStatus: string,
+  ) {
+    return this.ops.setPaymentStatus(id, paymentStatus);
   }
 
   @Patch('errands/:id/override')

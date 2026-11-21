@@ -1,4 +1,5 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
+import { randomBytes } from 'crypto';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { User } from '../../users/entities/user.entity';
 
@@ -13,6 +14,8 @@ export type ErrandStatus =
 // Statuses during which the runner may share, and the customer may see, live location.
 export const TRACKABLE_STATUSES: ErrandStatus[] = ['confirmed', 'picked-up', 'on-the-way'];
 
+export const newTrackingToken = () => randomBytes(16).toString('hex');
+
 export const CLEARED_RUNNER_LOCATION = {
   runnerLat:        null,
   runnerLng:        null,
@@ -22,12 +25,41 @@ export const CLEARED_RUNNER_LOCATION = {
 
 @Entity('errands')
 export class Errand extends BaseEntity {
-  @Column({ type: 'varchar' })
-  userId: string;
+  // Null for errands an admin creates for a customer without an eMax account.
+  @Column({ type: 'varchar', nullable: true })
+  userId: string | null;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: User | null;
+
+  // 'customer' = booked from the dashboard, 'admin' = created by ops for a guest
+  @Column({ type: 'varchar', length: 10, default: 'customer' })
+  source: 'customer' | 'admin';
+
+  // Guest customer details (admin-created errands)
+  @Column({ type: 'varchar', nullable: true })
+  customerName: string | null;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  customerPhone: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  customerEmail: string | null;
+
+  @Column({ type: 'varchar', length: 60, nullable: true })
+  category: string | null;
+
+  @Column({ type: 'varchar', length: 10, nullable: true })
+  paymentStatus: 'paid' | 'unpaid' | null;
+
+  @Column({ type: 'int', nullable: true })
+  amountCents: number | null;
+
+  // Unguessable token for the public /track/:token page — no login needed
+  @Index('IDX_errands_trackingToken', { unique: true })
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  trackingToken: string | null;
 
   @Column({ type: 'varchar' })
   type: string;
